@@ -16,7 +16,8 @@ def verify(output, archive=None):
     output = Path(output).resolve()
     output.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix="marketlens-acceptance-") as directory:
-        isolated = Path(directory)
+        # Windows TEMP may use an 8.3 alias while report paths resolve to long names.
+        isolated = Path(directory).resolve()
         home = isolated / "empty-home"
         home.mkdir()
         env = {k: v for k, v in os.environ.items()
