@@ -1,5 +1,15 @@
 # 市场明镜 压力测试与优化报告
 
+## 独立安装验收批（2026-10-10）
+
+可复现入口：`python scripts/verify_standalone.py --output work/standalone-acceptance`。它只用本仓源码包，在新临时目录解压，并创建无pip、无第三方包的独立venv；不采用editable安装、不复制其他仓。子进程清除PYTHONPATH/PYTHONHOME、CODEX_HOME、RESEARCH_WORKBENCH_*与相关作者路径变量，用临时HOME/用户缓存且禁用用户site，不改系统设置或真实缓存。宿主磁盘仍存在其他仓库，结论是目录/进程隔离，不是全新OS。解释器与标准库来自宿主Python发行版，不是复制专业库；sys.path和engine模块origin记录并限定于解压包、venv与Python基础运行时。
+
+本地Python 3.12.14实际通过：按README的demo生成新报告，510300合成样本历史179条、成交分位100、份额变化-100万份、净申赎估值为负、主体未知；结果版本v3-pilot-0.1，报告明确合成与分位不是概率。replay到已存在输出目录逐字节保持冻结JSON；错误CSV列名返回2，未知可得时点证据排除而不填当前时间。当前包包含LICENSE/THIRD_PARTY_NOTICES.md，覆盖已有ZIP返回失败；没有PyYAML仍能完成流程，因为运行不需要它。检查Skill/agents与本地Markdown引用均存在，不据此宣称自然语言安装发现或视觉验收。
+
+旧Release v0.1.0以本地原包验收，SHA256与发布资产一致：`10268088c89d42471830ed0cfa1819056cc6c2d7bb037b99355246f3d0d9237d`；解压到另一临时目录/venv，demo、回放、错误CSV与未知时点检查通过。旧包不含两份新增许可，也没有build_package.py，因此不执行旧包打包器覆盖检查。没有替换资产或改用户安装目录。
+
+每次生成acceptance.json保存包摘要/文件清单、完整命令输出与退出码、模块来源/运行环境和未验证范围；demo-snapshot.json及demo-report.md保存实际输出。GitHub Actions单仓checkout的四组合CI执行同一独立验收，具体成功状态以该提交检查为准。真实取数、跨仓联调、自然语言发现和视觉均未验收。本批结案点是离线单仓CLI及包结构通过，余项另定范围，不扩数据源或模型。
+
 日期：2026-10-10　版本：0.1.0。
 
 完成三轮独立自然语言叙事情景复查，共9个复合请求；同时运行多轮结构化和计算检查，最终44项通过，安装后复测也通过。另完成9步命令行真实调用流程，包括导入、计算、回放和证据审核。全部为合成资料或明确假设，未联网认证情景，也未交易。

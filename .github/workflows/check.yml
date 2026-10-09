@@ -29,3 +29,5 @@ jobs:
         run: python scripts/run.py demo --db work/demo.sqlite3 --out-dir work/demo-results
       - name: Verify source package includes licensing notices
         run: python scripts/build_package.py --output work/marketlens-license-check.zip
+      - name: Accept packaged Skill in isolated directory and virtual environment
+        run: python scripts/verify_standalone.py --output work/standalone-acceptance
