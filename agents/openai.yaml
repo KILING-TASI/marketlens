@@ -1,0 +1,6 @@
+interface:
+  display_name: "市场明镜 MarketLens"
+  short_description: "识别市场异常、核查热门叙事与公告证据，区分计划、执行和持仓变化"
+  default_prompt: "使用 $marketlens 分析这段市场叙事，告诉我哪些是事实、哪些是推断，还需要核查什么。"
+policy:
+  allow_implicit_invocation: true
