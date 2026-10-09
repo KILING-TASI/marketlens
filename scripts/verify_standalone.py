@@ -66,11 +66,14 @@ def verify(output, archive=None):
 
         probe = run(["-I", "-c", "import sys,json,importlib.util; "
                      "sys.path.insert(0,'scripts'); import marketlens.engine as e; "
+                     "import marketlens.demo,marketlens.narrative; "
                      "print(json.dumps({'sys_path':sys.path,'engine_origin':e.__file__,"
+                     "'module_origins':{k:v.__file__ for k,v in sys.modules.items() if k.startswith('marketlens')},"
                      "'python':sys.version,'prefix':sys.prefix,'base_prefix':sys.base_prefix,"
                      "'yaml_present':importlib.util.find_spec('yaml') is not None}))"])
         origins = json.loads(probe.stdout)
         assert Path(origins["engine_origin"]).is_relative_to(root)
+        assert all(Path(p).is_relative_to(root) for p in origins["module_origins"].values())
         assert not origins["yaml_present"]
         for path in origins["sys_path"]:
             resolved = (root / path).resolve() if path else root
