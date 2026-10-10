@@ -10,7 +10,7 @@ def build(output):
     for name in mandatory:
         if not (root / name).is_file():
             raise ValueError(f"Required package file missing: {name}")
-    files = [root / name for name in mandatory + ["README.md"]]
+    files = [root / name for name in mandatory + ["README.md", "BEGINNER.md", "try_demo.py", "Start-Demo.cmd", "Start-Demo.sh"]]
     for directory in ["agents", "references", "scripts", "docs"]:
         files.extend(p for p in (root / directory).rglob("*")
                      if p.is_file() and "__pycache__" not in p.parts
