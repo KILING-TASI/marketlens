@@ -152,10 +152,69 @@ def run(output):
          {"quality_code": "G01", "latest_record_excluded": True, "frozen_sha256": frozen_hash},
          {"issues": issues, "affected_date": affected["date"], "frozen_sha256": hashlib.sha256(frozen).hexdigest()},
          "同证券/日期两个互异价格不能择一当当天事实；报告注明实际较早行情日，原run回放字节不变")
+    # Bounded CN follow-up: official conditions are documented, all payloads remain synthetic.
+    quarterly = {"simulation": True, "scenario": "教学沪股通季末存量，公布时刻假设，非真实第五交易日计算",
+                 "as_of": "2026-07-15T18:00:00+08:00",
+                 "claims": [{"id": "stock", "type": "holdings", "actor": "沪股通投资者合计（教学）", "scope": "教学证券"},
+                            {"id": "live-buy", "type": "actor_execution", "actor": "沪股通投资者合计（教学）", "scope": "教学证券", "action": "buy", "day": "2026-07-15"}],
+                 "evidence": [{"id": "quarter-end", "source_type": "holdings", "stage": "holdings", "actor": "沪股通投资者合计（教学）", "scope": "教学证券",
+                               "period_start": "2026-06-30", "period_end": "2026-06-30", "available_at": "2026-07-08T18:00:00+08:00",
+                               "verified_at": "2026-07-08T18:10:00+08:00", "verified": True, "source": "合成季末持仓资料", "quote": "教学：截至6月末合计持有100万股，非7月15日买入披露。"}]}
+    quarterly_file = inputs / "cn-quarterly-holdings.json"
+    quarterly_file.write_text(json.dumps(quarterly, ensure_ascii=False, indent=2), encoding="utf-8")
+    quarterly_result = snapshot(invoke("narrative", "--input", quarterly_file, "--out-dir", out / "cn-quarterly"))
+    assert quarterly_result["claims"][0]["support_ids"] == ["quarter-end"]
+    assert quarterly_result["claims"][1]["status"] == "证据不足，不能确认"
+    bad_quarterly = json.loads(json.dumps(quarterly))
+    bad_quarterly["evidence"][0]["stage"] = "executed"
+    invalid_file = inputs / "cn-invalid-holdings-stage.json"
+    invalid_file.write_text(json.dumps(bad_quarterly, ensure_ascii=False), encoding="utf-8")
+    invalid_result = snapshot(invoke("narrative", "--input", invalid_file, "--out-dir", out / "cn-invalid-holdings"))
+    assert "阶段不一致" in invalid_result["excluded_evidence"][0]["reason"]
+    assert quarterly_file.read_text(encoding="utf-8") == json.dumps(quarterly, ensure_ascii=False, indent=2)
+    case("季度北向持仓不推实时资金", ["inputs/cn-quarterly-holdings.json", "inputs/cn-invalid-holdings-stage.json"],
+         {"holdings_supported": True, "live_buy_supported": False, "invalid_stage_excluded": True},
+         {"normal": quarterly_result, "invalid": invalid_result},
+         "上证发〔2024〕106号；季末存量与随后披露分开，持仓不等于7月15日交易，合计持仓不识别最终账户；不计算实际交易日")
+    financing_file = inputs / "cn-financing-scopes.csv"
+    with financing_file.open("w", encoding="utf-8", newline="") as file:
+        writer = csv.DictWriter(file, fieldnames=["date", "available_at", "universe", "buy_cny", "repay_cny", "balance_cny"])
+        writer.writeheader()
+        for scope, buy, repay in [("教学上交所当前标的明细池", 200_000_000, 300_000_000), ("教学沪深股票汇总池（可能重叠）", 500_000_000, 100_000_000)]:
+            writer.writerow(dict(date=baseline["data_day"], available_at=baseline["data_day"]+"T21:00:00+08:00", universe=scope, buy_cny=buy, repay_cny=repay, balance_cny=""))
+    invoke("import", "--db", db, "--demo", "--kind", "financing", "--input", financing_file, "--source", "CN教学不同融资覆盖池，人民币元")
+    pools_result = snapshot(invoke("assess", "--db", db, "--demo", "--as-of", baseline["as_of"], "--out-dir", out / "cn-pools"))
+    pools = {p["universe"]: p for p in pools_result["financing"]}
+    assert pools["教学上交所当前标的明细池"]["value"] == -100_000_000
+    assert pools["教学沪深股票汇总池（可能重叠）"]["value"] == 400_000_000
+    assert all(p["balance"] is None for scope, p in pools.items() if scope.startswith("教学"))
+    assert len(pools) == 3  # Includes the pre-existing demo pool, without combining overlapping scopes.
+    assert "不同" in next(iter(pools.values()))["scope_note"]
+    case("ETF与融资池不同覆盖不可相加", ["inputs/cn-financing-scopes.csv", "inputs/demo-fund.csv"],
+         {"pool_a_cny": -100_000_000, "pool_b_cny": 400_000_000, "missing_balance": None, "separate_pools": 3},
+         {"pools": pools_result["financing"], "fund_scope": pools_result["fund_aggregate"]["scope"]},
+         "2亿-3亿=-1亿，5亿-1亿=4亿；范围可能重叠不合并，余额缺失不补零；融资偿还不是单纯卖出，ETF申赎估值不归因身份")
+    business = {"simulation": True, "as_of": "2026-10-09T18:00:00+08:00",
+                "claims": [{"id": "test", "type": "business", "actor": "教学机器人公司", "scope": "教学机器人项目", "action": "technical_test"},
+                           {"id": "revenue", "type": "business", "actor": "教学机器人公司", "scope": "教学机器人项目", "action": "recognized_revenue", "amount_cny": 100_000_000},
+                           {"id": "investor", "type": "actor_execution", "actor": "未知机构", "scope": "教学机器人公司股票", "action": "buy"}],
+                "evidence": [{"id": "technical", "source_type": "business", "stage": "business", "actor": "教学机器人公司", "scope": "教学机器人项目", "action": "technical_test",
+                              "period_start": "2026-10-08", "period_end": "2026-10-08", "available_at": "2026-10-08T17:00:00+08:00", "verified_at": "2026-10-08T17:10:00+08:00",
+                              "verified": True, "source": "教学技术进展原句", "quote": "教学：样机完成内部技术试验；未提供客户合同、交付控制权、收入或投资者信息。"}]}
+    business_file = inputs / "cn-business-versus-revenue.json"
+    business_file.write_text(json.dumps(business, ensure_ascii=False, indent=2), encoding="utf-8")
+    business_result = snapshot(invoke("narrative", "--input", business_file, "--out-dir", out / "cn-business"))
+    assert business_result["claims"][0]["support_ids"] == ["technical"]
+    assert all(c["status"] == "证据不足，不能确认" for c in business_result["claims"][1:])
+    invoke("replay", "--db", db, "--demo", "--run-id", baseline["run_id"], "--out-dir", out / "baseline")
+    assert Path(paths["snapshot"]).read_bytes() == frozen
+    case("主题技术事实不确认收入与证券买家", ["inputs/cn-business-versus-revenue.json"],
+         {"technical_supported": True, "revenue_supported": False, "investor_supported": False, "frozen_sha256": frozen_hash},
+         business_result, "收入准则第4/5/11/13条须结合合同/控制权，内部试验不是客户验收或收入证据；商业主体与证券账户分开，未知不等于零")
     manifest = {"simulation": True, "method_version": baseline["version"], "reused_checks": checks,
                 "cases": cases, "commands": commands, "scope": "CLI reports and synthetic cases only; no real-source authentication"}
     (out / "scenario-manifest.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
-    (out / "scenario-index.md").write_text("# MarketLens教学情景\n\n全部为合成输入，不代表真实市场覆盖。\n\n" +
+    (out / "scenario-index.md").write_text("# MarketLens教学情景\n\n全部为合成输入，不代表真实市场覆盖。CN官方依据见包内references/cn-scenarios.md（核验2026-10-10），不推算真实沪股通交易日。\n\n" +
         "\n".join(f"- {c['name']}：通过；{c['method']}" for c in cases) +
         "\n\n复用44项原有约束检查；详细输入、预期、实际、命令和方法版本见scenario-manifest.json。\n", encoding="utf-8")
     print(json.dumps({"passed_cases": len(cases), "reused_checks": checks["passed"], "output": str(out)}, ensure_ascii=False))
