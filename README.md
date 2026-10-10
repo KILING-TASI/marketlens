@@ -22,6 +22,18 @@
 
 换成自己的资料，先看[中文资料准备与错误处理](BEGINNER.md)。已安装 CLI 可运行 `marketlens doctor` 检查软件环境；它不检查资料或认证来源。
 
+## 名称与使用入口
+
+| 用途 | 名称 |
+|---|---|
+| 中文展示名称 | 市场明镜 MarketLens |
+| GitHub 仓库／Python 发行包 | `marketlens` |
+| Skill 注册名 | `marketlens` |
+| 安装后的命令 | `marketlens` |
+| Python 模块 | `marketlens` |
+
+中文名称用于介绍；安装、调用和已有记录沿用表中的技术标识。CLI 安装与 Skill 注册分别完成，使用 Skill 时保留完整仓库资源。
+
 ## 安装和首次试用
 
 安装包见[发布页](https://github.com/KILING-TASI/marketlens/releases/tag/v0.2.4)，提供完整源码、wheel、sdist 和校验清单。源码按下面步骤安装；下载 wheel 后，将安装命令末尾的 `.` 换成该 wheel 文件路径。pip 安装不会自动注册 AI 工具中的 Skill。
