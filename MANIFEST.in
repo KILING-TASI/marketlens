@@ -11,7 +11,7 @@ prune dist
 include try_demo.py Start-Demo.cmd Start-Demo.sh BEGINNER.md
 include examples/teaching-report.html examples/teaching-report.jpg examples/teaching-report-note.md
 
-include USER_SCENARIOS.md EXPANSION.md
+include EXPANSION.md
 recursive-include examples/expansion-teaching *.json
 
 include EXPANSION_RELEASE.md
