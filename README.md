@@ -10,7 +10,7 @@
 
 先看[保存的结果示例](examples/teaching-report.html)，不需要安装 Python：图片可直接查看；HTML 请下载完整源码后用浏览器打开。示例按原记录标注教学或限定真实样本，不能换个名称就当作你的研究结果。重新计算才需要 Python。
 
-其他问题可看[九个工具如何选择](https://github.com/KILING-TASI/research-workbench/blob/main/references/tool-navigation.md)。各工具可独立使用，不必安装全部仓库。
+其他问题可看[按问题选择工具](https://github.com/KILING-TASI/research-workbench/blob/main/references/tool-navigation.md)。各工具可独立使用，不必安装全部仓库。
 
 ![教学报告截图](examples/teaching-report.jpg)
 
@@ -36,9 +36,9 @@
 
 ## 安装和首次试用
 
-安装包见[发布页](https://github.com/KILING-TASI/marketlens/releases/tag/v0.3.1)，提供完整源码、wheel、sdist 和校验清单。源码按下面步骤安装；下载 wheel 后，将安装命令末尾的 `.` 换成该 wheel 文件路径。pip 安装不会自动注册 AI 工具中的 Skill。
+安装包见[发布页](https://github.com/KILING-TASI/marketlens/releases/tag/v0.3.2)，提供完整源码、wheel、sdist 和校验清单。源码按下面步骤安装；下载 wheel 后，将安装命令末尾的 `.` 换成该 wheel 文件路径。pip 安装不会自动注册 AI 工具中的 Skill。
 
-安装包版本为 `0.3.1`。统一安装入口需要 Python 3.10 或以上。在完整源码目录新建自己的 Python 环境，下面的 Windows 命令不需要激活脚本：
+安装包版本为 `0.3.2`。统一安装入口需要 Python 3.10 或以上。在完整源码目录新建自己的 Python 环境，下面的 Windows 命令不需要激活脚本：
 
 ```powershell
 python -m venv .venv
@@ -47,7 +47,7 @@ python -m venv .venv
 .\.venv\Scripts\marketlens.exe demo --out-dir reports/demo --auto-name
 ```
 
-工具名与仓库名相同；在已激活的环境中可以直接输入工具名。Linux/macOS 使用 `.venv/bin/python` 和 `.venv/bin/marketlens`。教学结果写入当前工作目录；`--auto-name` 自动另选新名字，旧结果保留。不加该参数时，教学入口拒绝已有目录。`marketlens run --help` 查看原生参数，原来的命令继续兼容。其他专题可用 `marketlens script --help` 查看入口，以脚本名调用，不需要记住源码路径。pip 安装提供 CLI；作为 Skill 使用仍须保留完整源码及许可资源，不能只复制 SKILL.md。安装可能需要联网获取普通构建依赖；教学离线。下面保留原生入口及此前发行记录，安装步骤和对应版本以本节为准。
+工具名与仓库名相同；在已激活的环境中可以直接输入工具名。Linux/macOS 使用 `.venv/bin/python` 和 `.venv/bin/marketlens`。教学结果写入当前工作目录；`--auto-name` 自动另选新名字，旧结果保留。不加该参数时，教学入口拒绝已有目录。`marketlens run --help` 查看原生参数，原来的命令继续兼容。其他专题可用 `marketlens script --help` 查看入口，以脚本名调用，不需要记住源码路径。pip 安装提供 CLI；作为 Skill 使用仍须保留完整源码及许可资源，不能只复制 SKILL.md。安装可能需要联网获取普通构建依赖；教学离线。原生入口与当前安装步骤见下文；历史版本说明见 CHANGELOG。
 
 
 ## 导入真实数据前：先核对样本数量
@@ -122,17 +122,9 @@ $marketlens 这段消息说ETF放量就是国家队买入，现有证据能支�
 
 本地CLI的计算、叙事检查与打包已验收；自然语言Skill发现和视觉效果没有纳入独立安装验收。
 
-## 当前源码与旧安装包
+## 更新已有安装
 
-此前发行安装包为 **v0.2.0**，包含许可、独立安装验收、9类报告情景、`--human` 中文提示和输入诊断。可从[v0.2.0发布页](https://github.com/KILING-TASI/marketlens/releases/tag/v0.2.0)下载[Skill安装包](https://github.com/KILING-TASI/marketlens/releases/download/v0.2.0/marketlens-skill-v0.2.0.zip)与[SHA256校验文件](https://github.com/KILING-TASI/marketlens/releases/download/v0.2.0/SHA256SUMS.txt)，或克隆当前源码使用上面的命令。计算标识仍为`v3-pilot-0.1`，诊断说明为`input-diagnostics-1`，接口与历史结果不随软件版本升级重写。[发布与构建说明](docs/release-v0.2.0.md)
-
-[旧Release v0.1.0](https://github.com/KILING-TASI/marketlens/releases/tag/v0.1.0)保留原样：它能运行原有demo，但不含新增情景入口、`--human`、打包脚本及新增许可文件。使用旧包时去掉 `--human`：
-
-```powershell
-python scripts/run.py demo --db work/demo.sqlite3 --out-dir work/demo-results
-```
-
-用户已安装的Skill不会因仓库更新而自动变化。源码、Release和本地安装分别确认，详细版本含义见[数据契约](references/data-contract.md)。
+下载当前发布包后重新安装；已安装的 Skill 需要单独更新完整资源。历史安装包说明见 [v0.2.0 构建记录](docs/release-v0.2.0.md)；旧报告按其原版本解释。
 
 ## 验证、许可与来源
 
@@ -158,16 +150,8 @@ CSV导入当前以解码后的Python文本长度检查：单批最多8,000,000�
 本轮新增可引用市场证据摘要。独立入口、底稿与限制见 [EXPANSION.md](EXPANSION.md)。
 
 
+## 参与、更新与清理
 
-## v0.3.0 本轮补强
-
-新增可引用主张证据摘要，区分计划/执行、截止及核验时点，保留冲突与排除项。各仓独立使用要求继续保留，CRM不在本轮。历史报告、tag和原始证据摘要不改写。
-
-
-[本轮审计范围与未认证事项](AUDIT_SCOPE.md)。
-
-## v0.3.1 缺口修正与数据入口
-
-清理重复使用者页面的发布残留，新增英文项目入口及版本变更索引；独立使用和历史冻结记录保持。
+[贡献说明](CONTRIBUTING.md) · [安全反馈](SECURITY.md) · [更新、缓存与卸载](LIFECYCLE.md)。
 
 [English introduction](README.en.md) · [版本变更](CHANGELOG.md)。

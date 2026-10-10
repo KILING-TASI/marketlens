@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "research-rights-index/1",
+  "repository": "marketlens",
+  "originalCodeLicense": "MIT",
+  "noticeFiles": [
+    {
+      "path": "LICENSE",
+      "sha256": "3c806ee777b9a488840564fe12ca3234a724256f3fde62856ccd473f1556d91e"
+    },
+    {
+      "path": "THIRD_PARTY_NOTICES.md",
+      "sha256": "7c2964cb25627a8236f68183deaf31d200a644727041bb9aa73d5d75547b23c1"
+    }
+  ],
+  "dataRights": "Source-specific; not granted by code MIT",
+  "methodReferences": "See repository method documents; citations do not convey text or data redistribution rights",
+  "scope": "Notice-file inventory and hashes, not an authorization or legal compliance certificate",
+  "hashFormat": "utf-8-lf"
+}
