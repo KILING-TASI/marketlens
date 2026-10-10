@@ -6,13 +6,15 @@ import zipfile
 
 def build(output):
     root = Path(__file__).resolve().parent.parent
-    mandatory = ["SKILL.md", "LICENSE", "THIRD_PARTY_NOTICES.md"]
+    mandatory = ["SKILL.md", "LICENSE", "THIRD_PARTY_NOTICES.md",
+                 "CONTRIBUTING.md", "SECURITY.md", "LIFECYCLE.md",
+                 "RIGHTS_INDEX.json", "SHARED_CODE.json"]
     for name in mandatory:
         if not (root / name).is_file():
             raise ValueError(f"Required package file missing: {name}")
     files = [root / name for name in mandatory + ["README.en.md", "CHANGELOG.md", "README.md", "BEGINNER.md", "try_demo.py", "Start-Demo.cmd", "Start-Demo.sh", "EXPANSION.md", "AUDIT_SCOPE.md", "pyproject.toml", "setup.py", "_build_skill.py", "MANIFEST.in"]]
     files.extend(root / name for name in ["examples/teaching-report.html", "examples/teaching-report.jpg", "examples/teaching-report-note.md"])
-    for directory in ["agents", "references", "scripts", "docs"]:
+    for directory in ["agents", "references", "scripts", "docs", "tools"]:
         files.extend(p for p in (root / directory).rglob("*")
                      if p.is_file() and "__pycache__" not in p.parts
                      and p.suffix.lower() in {".py", ".md", ".yaml", ".yml"})
