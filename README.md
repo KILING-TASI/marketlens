@@ -129,3 +129,7 @@ python scripts/run.py demo --db work/demo.sqlite3 --out-dir work/demo-results
 - 验证：44项计算与证据约束检查、9类实际CLI报告情景，独立源码包在标准库虚拟环境中运行；CI覆盖Windows/Linux和Python 3.10/3.12。[验证范围与复现方法](docs/validation.md)
 - 来源：CN情景的官方规则版本、核验日期和适用条件见[官方口径说明](references/cn-scenarios.md)；主体、时点和原句的核查方法见[叙事与证据](references/narrative-evidence.md)。教学检查通过不代表真实识别准确率或收益。
 - 许可：有权许可的原创代码、Skill说明与合成示例采用[MIT](LICENSE)，版权主体KILING-TASI。公告、研报、数据和标识保留各自权利，详见[第三方与数据权利说明](THIRD_PARTY_NOTICES.md)。
+
+## 叙事检查如何理解
+
+“在证据范围内有支持”表示填写的结构化条件匹配，不表示程序读懂或核实了整句文字。当前不会自动验证摘要的语义。“收入同比下降”与“业绩暴雷”须拆为不同主张，定性判断仍需人工核对原文、比较基准和程度。JSON中 `verification_scope=structured_fields_only`、`semantic_verification=not_performed` 明示此范围；旧冻结结果不补写新字段。
