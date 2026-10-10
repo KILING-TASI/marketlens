@@ -6,9 +6,9 @@
 
 ## 安装和首次试用
 
-本轮对应[发布页](https://github.com/KILING-TASI/marketlens/releases/tag/v0.2.2)；下载时以实际上传的完整源码、wheel、sdist 与校验清单为准。源码按下面步骤安装；下载 wheel 后，将安装命令末尾的 `.` 换成该 wheel 文件路径。pip 安装不会自动注册 AI 工具中的 Skill。
+本轮对应[发布页](https://github.com/KILING-TASI/marketlens/releases/tag/v0.2.3)；下载时以实际上传的完整源码、wheel、sdist 与校验清单为准。源码按下面步骤安装；下载 wheel 后，将安装命令末尾的 `.` 换成该 wheel 文件路径。pip 安装不会自动注册 AI 工具中的 Skill。
 
-本轮源码版本为 `0.2.2`。统一安装入口需要 Python 3.10 或以上。在完整源码目录新建自己的 Python 环境，下面的 Windows 命令不需要激活脚本：
+本轮源码版本为 `0.2.3`。统一安装入口需要 Python 3.10 或以上。在完整源码目录新建自己的 Python 环境，下面的 Windows 命令不需要激活脚本：
 
 ```powershell
 python -m venv .venv
@@ -133,3 +133,9 @@ python scripts/run.py demo --db work/demo.sqlite3 --out-dir work/demo-results
 ## 叙事检查如何理解
 
 “在证据范围内有支持”表示填写的结构化条件匹配，不表示程序读懂或核实了整句文字。当前不会自动验证摘要的语义。“收入同比下降”与“业绩暴雷”须拆为不同主张，定性判断仍需人工核对原文、比较基准和程度。JSON中 `verification_scope=structured_fields_only`、`semantic_verification=not_performed` 明示此范围；旧冻结结果不补写新字段。
+
+## 导入规模与运行限制
+
+CSV导入当前以解码后的Python文本长度检查：单批最多8,000,000字符，含BOM的字符串在检查时也计入；这不是8 MiB文件字节限制，UTF-8中文可能占更多字节。超过时按完整数据行分批，每批保留完整表头、来源、证券身份、口径和可得时间。重复批次会识别，但不同来源或更正批次仍须自行核对；不按分批次序猜历史可得时间。
+
+该门槛不是数据库总容量、全市场覆盖或内存保证。SQLite导入和分析可能占用额外内存及磁盘；本轮未认证任意规模或任意机器的吞吐。不要从某次十万条测试外推全市场运行时间。
