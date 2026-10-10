@@ -122,10 +122,11 @@ def main(argv=None):
             result = native(root, forwarded)
             if result == 0 and REPO == 'marketlens':
                 from html import escape
+                from marketlens.teaching_html import render
                 originals=list(output.glob('*.md'))
                 if len(originals)!=1:raise ValueError('未能唯一定位教学说明，原JSON与Markdown保留。')
                 text=originals[0].read_text(encoding='utf-8')
-                page='<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>市场明镜教学结果</title><style>body{max-width:960px;margin:32px auto;padding:0 20px;font:16px/1.7 system-ui;color:#203548}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#f4f7fa;padding:20px}.notice{background:#fff1d8;padding:16px}</style><h1>市场明镜教学结果</h1><p class="notice">这是合成教学输入，不是真实市场或主体证据。下面忠实保留原始说明，不增加投资结论。</p><pre>'+escape(text)+'</pre><p><a href="'+escape(originals[0].name,quote=True)+'">原Markdown说明</a></p></html>'
+                page='<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>市场明镜教学结果</title><style>body{max-width:960px;margin:32px auto;padding:0 20px;font:16px/1.7 system-ui;color:#203548}.table{overflow:auto}table{border-collapse:collapse;width:100%}td,th{border:1px solid #dbe3ed;padding:10px;text-align:left}th{background:#eff4f8}p{overflow-wrap:anywhere}.notice{background:#fff1d8;padding:16px}</style><h1>市场明镜教学结果</h1><p class="notice">这是合成教学输入，不是真实市场或主体证据。下面忠实保留原始说明，不增加投资结论。</p>'+render(text)+'<p><a href="'+escape(originals[0].name,quote=True)+'">原Markdown说明</a></p></html>'
                 with (output/REPORT_FILE).open('x',encoding='utf-8') as handle:handle.write(page)
             if result == 0 and REPORT_FILE and (output / REPORT_FILE).is_file():
                 print('请打开：' + str((output / REPORT_FILE).resolve()) + '；本次使用教学输入。', file=sys.stderr)
