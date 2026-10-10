@@ -4,11 +4,17 @@
 
 [![原创代码 MIT](https://img.shields.io/badge/原创代码-MIT-blue)](LICENSE)
 
+## 先看一份教学报告
+
+完整源码解压后，需要 Python 3.10+。Windows 可运行 `Start-Demo.cmd`；或在源码目录执行 `python try_demo.py`。Linux/macOS 用 `sh Start-Demo.sh`。不需要先执行 pip 安装，不自动下载数据或覆盖旧报告；缺 Python 会提示处理路径。
+
+换成自己的资料，先看[中文资料准备与错误处理](BEGINNER.md)。已安装 CLI 可运行 `marketlens doctor` 检查软件环境；它不检查资料或认证来源。
+
 ## 安装和首次试用
 
-本轮对应[发布页](https://github.com/KILING-TASI/marketlens/releases/tag/v0.2.3)；下载时以实际上传的完整源码、wheel、sdist 与校验清单为准。源码按下面步骤安装；下载 wheel 后，将安装命令末尾的 `.` 换成该 wheel 文件路径。pip 安装不会自动注册 AI 工具中的 Skill。
+本轮对应[发布页](https://github.com/KILING-TASI/marketlens/releases/tag/v0.2.4)；下载时以实际上传的完整源码、wheel、sdist 与校验清单为准。源码按下面步骤安装；下载 wheel 后，将安装命令末尾的 `.` 换成该 wheel 文件路径。pip 安装不会自动注册 AI 工具中的 Skill。
 
-本轮源码版本为 `0.2.3`。统一安装入口需要 Python 3.10 或以上。在完整源码目录新建自己的 Python 环境，下面的 Windows 命令不需要激活脚本：
+本轮源码版本为 `0.2.4`。统一安装入口需要 Python 3.10 或以上。在完整源码目录新建自己的 Python 环境，下面的 Windows 命令不需要激活脚本：
 
 ```powershell
 python -m venv .venv
@@ -139,3 +145,7 @@ python scripts/run.py demo --db work/demo.sqlite3 --out-dir work/demo-results
 CSV导入当前以解码后的Python文本长度检查：单批最多8,000,000字符，含BOM的字符串在检查时也计入；这不是8 MiB文件字节限制，UTF-8中文可能占更多字节。超过时按完整数据行分批，每批保留完整表头、来源、证券身份、口径和可得时间。重复批次会识别，但不同来源或更正批次仍须自行核对；不按分批次序猜历史可得时间。
 
 该门槛不是数据库总容量、全市场覆盖或内存保证。SQLite导入和分析可能占用额外内存及磁盘；本轮未认证任意规模或任意机器的吞吐。不要从某次十万条测试外推全市场运行时间。
+
+## 本轮验证范围
+
+源码教学启动、软件环境查询和安装后教学入口分别验证；软件就绪不等于真实资料已取得。中文问答需要助手按本仓Skill准备已声明输入，没有宣称任意自然语言自动发现或全市场数据闭环。旧报告、历史tag与案例证据保留。

@@ -12,7 +12,7 @@ SOURCE_DEPTH = 2
 MODE = 'script'
 SCRIPT = 'scripts/run.py'
 OUTPUT_FLAG = '--out-dir'
-REPORT_FILE = ''
+REPORT_FILE = 'teaching-report.html'
 
 def resources():
     bundled = Path(__file__).resolve().parent / '_skill'
@@ -58,11 +58,35 @@ def native(root, args, selected=None):
         sys.path[:] = old_path
         sys.dont_write_bytecode = old_bytecode
 
+def doctor(args):
+    for stream in (sys.stdout,sys.stderr):
+        if hasattr(stream, "reconfigure"):stream.reconfigure(encoding="utf-8")
+    import json,importlib.util,importlib.metadata,platform
+    parser=argparse.ArgumentParser(description='仅检查本仓软件环境；不联网、不检查数据或安装组件')
+    parser.add_argument('--json',action='store_true');options=parser.parse_args(args)
+    try:version=importlib.metadata.version(REPO)
+    except importlib.metadata.PackageNotFoundError:version='source-checkout; see pyproject.toml'
+    analysis={name:importlib.util.find_spec(name) is not None for name in ('numpy','pandas','scipy','sklearn','statsmodels')} if REPO=='portfolio-decision-engine' else {}
+    minimum=(3,11) if REPO=='research-workbench' else (3,10)
+    ready=sys.version_info>=minimum
+    try:root=str(resources())
+    except ValueError:root=None;ready=False
+    result=dict(status='environment-ready' if ready else 'environment-blocked',repo=REPO,version=version,python=platform.python_version(),teachingReady=ready,analysisComponents=analysis,resourceDirectory=root,dataChecked=False,sourceVerified=False,filesWritten=False,networkAccess=False,nextSteps=['运行 demo --out-dir 新目录 --auto-name 查看教学结果；教学不是实际研究。'])
+    if analysis and not all(analysis.values()):result['nextSteps'].append('轻量金额与现金路径可用；完整历史分析请安装 .[analysis]，不会自动安装。')
+    if not ready:result['nextSteps']=['核对Python版本与完整源码或wheel资源，按README处理。']
+    if options.json:print(json.dumps(result,ensure_ascii=False,indent=2))
+    else:
+        print('软件环境可运行教学' if ready else '软件环境尚未就绪')
+        for step in result['nextSteps']:print('下一步：'+step)
+        print('本检查不代表取得或核验了研究数据。')
+    return 0 if ready else 2
+
 def main(argv=None):
     for stream in (sys.stdout, sys.stderr):
         if hasattr(stream, 'reconfigure'):
             stream.reconfigure(encoding='utf-8')
     args = list(sys.argv[1:] if argv is None else argv)
+    if args and args[0] == "doctor":return doctor(args[1:])
     if not args or args in [['--help'], ['-h']]:
         print(REPO + '：独立研究工具。')
         print('教学试用：' + REPO + ' demo --out-dir reports/demo --auto-name')
@@ -96,6 +120,13 @@ def main(argv=None):
             else:
                 forwarded = [OUTPUT_FLAG, str(output)]
             result = native(root, forwarded)
+            if result == 0 and REPO == 'marketlens':
+                from html import escape
+                originals=list(output.glob('*.md'))
+                if len(originals)!=1:raise ValueError('未能唯一定位教学说明，原JSON与Markdown保留。')
+                text=originals[0].read_text(encoding='utf-8')
+                page='<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>市场明镜教学结果</title><style>body{max-width:960px;margin:32px auto;padding:0 20px;font:16px/1.7 system-ui;color:#203548}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#f4f7fa;padding:20px}.notice{background:#fff1d8;padding:16px}</style><h1>市场明镜教学结果</h1><p class="notice">这是合成教学输入，不是真实市场或主体证据。下面忠实保留原始说明，不增加投资结论。</p><pre>'+escape(text)+'</pre><p><a href="'+escape(originals[0].name,quote=True)+'">原Markdown说明</a></p></html>'
+                with (output/REPORT_FILE).open('x',encoding='utf-8') as handle:handle.write(page)
             if result == 0 and REPORT_FILE and (output / REPORT_FILE).is_file():
                 print('请打开：' + str((output / REPORT_FILE).resolve()) + '；本次使用教学输入。', file=sys.stderr)
             return result
@@ -137,10 +168,10 @@ def main(argv=None):
     except ModuleNotFoundError as error:
         if (error.name or '').split('.')[0] not in {'numpy','pandas','scipy','sklearn','statsmodels','joblib','dateutil','patsy','pdfplumber','pypdf'}:
             raise
-        print('缺少运行依赖。请在完整源码目录执行 python -m pip install .，或安装对应 wheel 并保留依赖安装。PDF 功能按 README 的可选依赖步骤安装。', file=sys.stderr)
+        print('缺少运行依赖。请在完整源码目录执行 python -m pip install .，或安装对应 wheel。组合完整分析用 .[analysis]；PDF 功能按 README 的可选依赖步骤安装。', file=sys.stderr)
         return 2
     except (OSError, ValueError) as error:
-        print(str(error), file=sys.stderr)
+        print(str(error)+'\n下一步：核对本仓 run --help 与输入示例，使用新输出路径；可用 doctor 检查软件环境。', file=sys.stderr)
         return 2
 
 if __name__ == '__main__':
