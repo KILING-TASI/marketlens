@@ -1,0 +1,28 @@
+{
+  "as_of": "2026-01-01T12:00:00+08:00",
+  "simulation": true,
+  "evidence": [
+    {
+      "id": "e1",
+      "available_at": "2026-01-01T10:00:00+08:00",
+      "verified": true,
+      "verified_at": "2026-01-01T11:00:00+08:00",
+      "source": "https://example.org/teaching",
+      "quote": "原创教学计划陈述",
+      "actor": "教学公司",
+      "scope": "教学股份回购",
+      "source_type": "plan",
+      "stage": "planned",
+      "period_start": "2026-01-01",
+      "period_end": "2026-12-31"
+    }
+  ],
+  "claims": [
+    {
+      "id": "c1",
+      "type": "actor_execution",
+      "actor": "教学公司",
+      "scope": "教学股份回购"
+    }
+  ]
+}

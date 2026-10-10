@@ -51,3 +51,5 @@ New packages built with scripts/build_package.py include LICENSE and this
 notice. The previously published v0.1.0 asset predates these files and does not
 contain them; it has not been rebuilt or replaced by this change. These repository
 notices do not rewrite that historical archive or remove third-party restrictions.
+
+本轮新增研究复查、报告说明及合成教学为作者原创MIT；同作者随包通用I/O代码独立保留，不要求其他仓库安装。规则有限事实和来源链接不改变原文权利；未捆绑实际公告/研报PDF或私人账户资料。
