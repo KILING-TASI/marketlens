@@ -129,6 +129,26 @@ def verify(output, archive=None):
             assert "新目录" in refusal.stderr
             assert hashlib.sha256((root / "work/scenarios/scenario-manifest.json").read_bytes()).hexdigest() == scenario_hash
             shutil.copytree(root / "work/scenarios", output / "scenarios", dirs_exist_ok=True)
+            diagnosis = run(["scripts/verify_diagnostics.py", "--output", "work/diagnostics"])
+            assert json.loads(diagnosis.stdout)["passed"] == 12
+            run(["scripts/export_examples.py", "--output", "work/examples"])
+            assert all((root / "work/examples" / (kind + ".csv")).is_file()
+                       for kind in ["market", "fund", "financing", "breadth", "sector", "calendar"])
+            for kind in ["market", "fund", "financing", "breadth", "sector", "calendar"]:
+                run(["scripts/run.py", "import", "--db", "work/examples.sqlite3", "--demo", "--kind", kind,
+                     "--input", f"work/examples/{kind}.csv", "--source", "exported synthetic input"])
+            exported = run(["scripts/run.py", "assess", "--db", "work/examples.sqlite3", "--demo",
+                            "--as-of", "2026-10-09T22:00:00+08:00", "--out-dir", "work/example-report"])
+            exported_data = json.loads(Path(json.loads(exported.stdout)["snapshot"]).read_text(encoding="utf-8"))
+            assert next(c for c in exported_data["cards"] if c["instrument"] == "SSE:510300")["net_share_change"] == -1_000_000
+            for name, supported in [("unverified", False), ("verified-teaching", True)]:
+                narrative = run(["scripts/run.py", "narrative", "--input", f"work/examples/{name}.json",
+                                 "--out-dir", f"work/example-{name}", "--human"])
+                payload = json.loads(Path(json.loads(narrative.stdout)["snapshot"]).read_text(encoding="utf-8"))
+                assert bool(payload["claims"][0]["support_ids"]) == supported
+                assert "教学" in narrative.stderr
+            shutil.copytree(root / "work/diagnostics", output / "diagnostics", dirs_exist_ok=True)
+            shutil.copytree(root / "work/examples", output / "examples", dirs_exist_ok=True)
         evidence = {"scope": "directory/process isolation; host still contains other repositories",
                     "archive_sha256": digest, "archive_files": names, "dependencies": "Python standard library only; venv without pip",
                     "origins": origins, "commands": records, "notices": notices,

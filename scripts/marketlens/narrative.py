@@ -6,6 +6,39 @@ TYPES = {"actor_execution": "execution", "holdings": "holdings", "plan": "plan",
 STAGES = {"execution": "executed", "holdings": "holdings", "plan": "planned", "business": "business", "indirect": "indirect"}
 
 
+def unmet_conditions(e, cutoff, replay_mode):
+    conditions = []
+    usable = None
+    try:
+        usable = timestamp(e.get("available_at", ""))
+        if usable > cutoff:
+            conditions.append("截止时刻之后才可用")
+    except ValidationError:
+        conditions.append("证据可用时间未知，不能用于时点确认")
+    if e.get("verified") is not True:
+        conditions.append("仅有转述或未完成原文核验；verified只是人工声明，不是程序认证")
+    try:
+        reviewed = timestamp(e.get("verified_at", ""))
+        if reviewed > cutoff and replay_mode == "confirmed_state":
+            conditions.append("截止之后才核验，不能改写当时已确认结论")
+    except ValidationError:
+        conditions.append("核验时间未知")
+    for field, label in [("source", "来源"), ("quote", "原句"), ("actor", "主体"), ("scope", "范围")]:
+        if not e.get(field):
+            conditions.append(label + "缺失")
+    if e.get("source_type") not in STAGES or STAGES.get(e.get("source_type")) != e.get("stage"):
+        conditions.append("来源类别或行为阶段缺失/不一致")
+    try:
+        start, end = date.fromisoformat(e.get("period_start", "")), date.fromisoformat(e.get("period_end", ""))
+        if start > end:
+            raise ValueError()
+        if usable and e.get("source_type") != "plan" and end > datetime.fromisoformat(usable).astimezone(timezone(timedelta(hours=8))).date():
+            conditions.append("发生期间晚于披露时点")
+    except (ValueError, TypeError):
+        conditions.append("行为期间未知或不合法")
+    return conditions
+
+
 def analyze(data):
     if not isinstance(data, dict):
         raise ValidationError("叙事输入须为对象")
@@ -47,7 +80,7 @@ def analyze(data):
             reason = "来源或原句缺失"
         if reason is None and (not e.get("actor") or not e.get("scope")):
             reason = "主体或范围不明确"
-        if reason is None and STAGES.get(e.get("source_type")) != e.get("stage"):
+        if reason is None and (e.get("source_type") not in STAGES or STAGES.get(e.get("source_type")) != e.get("stage")):
             reason = "来源类别与行为阶段不一致"
         if reason is None:
             try:
@@ -60,7 +93,7 @@ def analyze(data):
             except (ValueError, TypeError):
                 reason = "行为期间未知或不合法"
         if reason:
-            excluded.append({"id": e["id"], "reason": reason})
+            excluded.append({"id": e["id"], "reason": reason, "conditions_not_met": unmet_conditions(e, cutoff, replay_mode), "next_step": "取得原文并核对真实主体、范围、期间与公开/核验时间；无法核实则保留未知，不补假期间或强行声明已核。"})
         else:
             available.append(e)
     superseded = set()
@@ -116,4 +149,5 @@ def analyze(data):
         gaps.append("没有原始证据，仅能讨论可能解释，不能确认账户身份或执行")
     if excluded:
         gaps.append("部分证据因时点、来源或阶段条件不符，未用于确认")
+    # These are diagnostic additions, not a change to model/method thresholds.
     return {"as_of": cutoff, "replay_mode": replay_mode, "simulation": data.get("simulation") is True, "scenario": data.get("scenario", ""), "claims": results, "available_evidence": available, "superseded_evidence_ids": sorted(superseded), "excluded_evidence": excluded, "gaps": gaps, "limitations": ["这是结构化边界检查，不自动理解原文、不认证来源或verified标记", "仍须人工核实原句含义、动作、范围、日期和金额口径", "公开信息回放中的事后核验不等于当时系统已审核，不恢复当时决策", "合成情景结果不代表真实行情或识别准确率"]}

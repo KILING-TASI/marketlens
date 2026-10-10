@@ -47,6 +47,8 @@ python scripts/run_scenarios.py --output work/scenarios-new --human
 
 字段、单位和缺口处理见[数据契约](references/data-contract.md)，开发范围见[能力说明](references/capabilities.md)。
 
+需要完整教学CSV与叙事JSON时，运行`python scripts/export_examples.py --output work/teaching-inputs-new`；新目录内有六类CSV、未核原文/已核教学两份JSON和中文说明。导入时使用独立数据库与`--demo`，具体步骤和每项计算的最低数据见[输入诊断说明](references/data-contract.md#输入诊断与兼容说明)。空模板仍只有表头；裸证券代码与不匹配日历会明确警告，不自动猜交易所。
+
 ## 独立使用与 Skill 安装
 
 **可以直接运行本地CLI，也可以作为Codex Skill使用。** 两种入口都不依赖研究工作台或其他自家仓库；MarketLens负责市场叙事与证据检查，公司经营和综合判断不由这里包办。
