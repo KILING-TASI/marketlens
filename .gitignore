@@ -8,3 +8,9 @@ data/
 *.sqlite3-*
 .env
 .env.*
+
+# Local Python installation/build outputs
+.venv/
+build/
+dist/
+*.egg-info/
