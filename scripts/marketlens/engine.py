@@ -82,6 +82,16 @@ def identity_key(kind, row):
     return "|".join([row["date"]] + [row[k] for k in keys])
 
 
+def input_warnings(kind, rows):
+    warnings = []
+    for row in rows:
+        if kind in {"market", "fund"} and not row["instrument"].startswith(("SSE:", "SZSE:")):
+            warnings.append({"code": "IDENTITY_PREFIX", "instrument": row["instrument"], "message": "日频交易日匹配只支持SSE:或SZSE:前缀，原身份保留。", "next_step": "核对原证券交易所与代码后另行导入完整身份，不猜交易所或改旧记录。"})
+        if kind == "calendar" and row["market"] not in {"SSE", "SZSE"}:
+            warnings.append({"code": "CALENDAR_MARKET", "market": row["market"], "message": "该市场不能匹配当前SSE:/SZSE:证券，CN不是自动别名。", "next_step": "按原始日历分别核对SSE或SZSE；不自动替换原市场。"})
+    return list({json.dumps(w, sort_keys=True, ensure_ascii=False): w for w in warnings}.values())
+
+
 class Store:
     def __init__(self, path: str | Path):
         self.path = str(path)
@@ -168,16 +178,17 @@ class Store:
         if not rows:
             raise ValidationError("文件只有标题，没有数据")
         digest = hashlib.sha256(text.encode("utf-8")).hexdigest()
+        warnings = input_warnings(kind, rows)
         bid = uuid.uuid4().hex
         with self.connect() as db:
             old = db.execute("SELECT id,row_count FROM batch WHERE kind=? AND source=? AND demo=? AND hash=?", (kind, source.strip(), int(demo), digest)).fetchone()
             if old:
-                return {"id": old["id"], "rows": old["row_count"], "duplicate": True}
+                return {"id": old["id"], "rows": old["row_count"], "duplicate": True, "warnings": warnings}
             db.execute("INSERT INTO batch VALUES(?,?,?,?,?,?,?,?)", (bid, kind, source.strip(), int(demo), now(), digest, text, len(rows)))
             for row in rows:
                 db.execute("INSERT INTO observation(batch_id,kind,record_key,date,available,data) VALUES(?,?,?,?,?,?)", (bid, kind, identity_key(kind, row), row["date"], row["available_at"], json.dumps(row, ensure_ascii=False)))
             db.execute("INSERT INTO audit(created,action,target,data) VALUES(?,?,?,?)", (now(), "import", bid, json.dumps({"rows": len(rows), "hash": digest})))
-        return {"id": bid, "rows": len(rows), "duplicate": False}
+        return {"id": bid, "rows": len(rows), "duplicate": False, "warnings": warnings}
 
     def snapshot(self, as_of: str, demo=False):
         as_of = timestamp(as_of)
@@ -314,6 +325,8 @@ class Store:
         all_rows = [r for rows in snapshot.values() for r in rows]
         issues = []
         for kind, rows in list(snapshot.items()):
+            for warning in input_warnings(kind, rows):
+                issues.append({**warning, "kind": kind})
             for r in rows:
                 if r["_conflicts"]:
                     issues.append({"code": "G01", "kind": kind, "record_id": r["_id"], "message": "不同来源同记录存在冲突，阻断依赖值；需核对来源与口径", "alternatives": r["_conflicts"]})
@@ -376,6 +389,37 @@ class Store:
             else:
                 structure = "已取得成分样本" if returns else "成分数据缺失"
             missing = []
+            diagnostics = []
+            def diagnose(code, message, next_step):
+                diagnostics.append({"code": code, "message": message, "next_step": next_step})
+            if cal_market is None:
+                diagnose("IDENTITY_PREFIX", "证券身份没有支持的交易所前缀，无法匹配日历。", "核对证券身份，使用经确认的SSE:或SZSE:代码；旧库不自动改名。")
+            elif not snapshot["calendar"]:
+                diagnose("CALENDAR_NOT_VISIBLE", "截止时点内没有可用交易日历；未导入与晚于截止才可得无法从本快照区分。", "提供截止时点已可得的真实市场日历，不用今日取得时间倒填。")
+            elif not calendar:
+                diagnose("CALENDAR_SCOPE_MISMATCH", "有可见日历，但没有该证券市场截至行情日的记录。", f"核对并提供{cal_market}日历，不能用CN或另一市场代替。")
+            if cal_market and calendar and day not in opens:
+                diagnose("CALENDAR_CURRENT_MISSING", "日历未确认当前行情日为交易日。", "核对同市场当前日期的日历和可得时间，不自动补交易日。")
+            if previous is None:
+                diagnose("MARKET_PREVIOUS_MISSING", "只有当前行情，缺少前一条行情。", "提供经日历确认的前一交易日行情。")
+            elif calendar and preceding is None:
+                diagnose("CALENDAR_PREVIOUS_MISSING", "日历缺少当前日前的已确认交易日。", "补充原始日历的前交易日，不按工作日猜测。")
+            elif preceding and previous["date"] != preceding:
+                diagnose("MARKET_PREVIOUS_MISSING", f"日历前交易日为{preceding}，最近前行情为{previous['date']}。", "导入该前交易日行情及其可得时间。")
+            if multiplier is None:
+                diagnose("AMOUNT_MULTIPLIER_HISTORY", f"成交倍数需60条先前成交额，现有{count}条；中位数须大于零。", "补充相同身份/口径的可得历史，当前日不计入。")
+            if amount_p is None:
+                diagnose("AMOUNT_PERCENTILE_HISTORY", f"成交分位需120条先前有效行情，现有{count}条。", "补充历史，最多取252条，不降低阈值或复制记录凑数。")
+            if len(impacts) < 120:
+                diagnose("IMPACT_PERCENTILE_HISTORY", f"冲击分位需120个先前有效冲击值，现有{len(impacts)}个；不等于行情条数。", "需相邻可比收盘价和正成交额；排除当前冲击，当前还须日历连续性。")
+            if fcur is None:
+                diagnose("FUND_CURRENT_MISSING", "当前行情日没有同身份份额/净值记录。", "核对当日份额、净值及折算因子，不用滞后净值替代。")
+            if fprev is None:
+                diagnose("FUND_PREVIOUS_MISSING", "缺少经日历与行情确认的前交易日同身份基金记录。", "先补日历/行情，再核对该日份额、净值及折算因子。")
+            if not returns:
+                diagnose("BREADTH_MISSING", "没有同行情日、同index_id且eligible=1的成分收益。", "导入明确范围的成分样本；上涨比例不要求权重。")
+            elif not weighted:
+                diagnose("WEIGHTS_INCOMPLETE", "样本宽度可算，但权重缺失或权重合计偏离1达到0.01。", "核对每只期初权重及完整范围，不把样本权重自动归一化。")
             if amount_p is None:
                 missing.append("成交分位至少需要120个有效历史样本")
             if gap:
@@ -389,6 +433,8 @@ class Store:
             level = "数据不足" if amount_p is None else "显著异常" if amount_p >= 99 else "值得观察" if amount_p >= 95 else "常态"
             explanations = [{"type": "ETF申赎", "status": "有支持" if value is not None else "不可观测", "detail": f"净份额{direction(change)}，规模是净值估值，不是实际现金" if value is not None else "份额、净值或交易日历不足"}, {"type": "指数调仓/期现套利/执行方式", "status": "不可观测", "detail": "尚未接入对应事件、期货及逐笔数据"}]
             cards.append({"instrument": instrument, "name": current["name"], "date": day, "index_id": current["index_id"], "category": current["category"], "source": current["_source"], "anomaly": level, "amount_cny": current["amount_cny"], "amount_percentile": amount_p, "history_count": count, "amount_multiplier": multiplier, "return_decimal": ret, "impact": impact, "impact_percentile": impact_p, "amplitude": amplitude, "high_volume_low_impact": bool(amount_p is not None and impact_p is not None and amount_p >= 95 and impact_p <= 20), "net_share_change": change, "net_creation_value_estimate": value, "fund_direction": direction(change), "fund_last_date": fund[-1]["date"] if fund else None, "breadth": breadth, "median_return": med, "equal_return": statistics.mean(returns) if returns else None, "member_count": len(members), "index_return_proxy": index_return_proxy, "divergence_proxy": divergence, "top5_positive_contribution_proxy": concentration, "structure": structure, "identity": "未知：不得从行情推断主体", "missing": missing, "explanations": explanations})
+            cards[-1]["diagnostics"] = diagnostics
+            cards[-1]["impact_history_count"] = len(impacts)
         current_day = max((c["date"] for c in cards), default=None)
         same_day = [c for c in cards if c["date"] == current_day]
         fund_values = [c for c in same_day if c["net_creation_value_estimate"] is not None]
@@ -414,6 +460,8 @@ class Store:
             p = percentile(fraction, [r["amount_cny"] / r["market_amount_cny"] for r in old]) if len(old) >= 120 else None
             sectors.append({"theme": theme, "market_scope": scope, "date": last["date"], "fraction": fraction, "breadth": last["up_count"]/last["total_count"], "percentile": p, "samples": len(old), "status": "高交易占比，非下跌概率" if p is not None and p >= 95 else "历史不足" if p is None else "普通观察"})
         evidence = self.evidence_at(as_of, demo)
+        for sector in sectors:
+            sector["diagnostics"] = [] if sector["percentile"] is not None else [{"code": "SECTOR_HISTORY", "message": f"主题分位需120条同主题/同market_scope先前有效占比，现有{sector['samples']}条。", "next_step": "补充相同范围的成交额与分母；当前占比可算，历史分位保持未知。"}]
         latest = {}
         for e in evidence:
             latest[e["event_id"]] = e

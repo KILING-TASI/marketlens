@@ -1,5 +1,41 @@
 # 数据与计算
 
+## 输入诊断与兼容说明
+
+输入CSV列集、数据库原始记录和计算标识`v3-pilot-0.1`保持不变。新导入JSON旁加`warnings`，旧返回键不变；报告卡片旁加`diagnostics`与`impact_history_count`，主题旁加`diagnostics`；叙事排除证据旁加`conditions_not_met`和`next_step`，保留首条reason及原判断。诊断说明版本为`input-diagnostics-1`，不是新的规则/方法版本。旧冻结JSON不补写这些字段，旧run仍读原结果，报告兼容缺字段。旧库无前缀可分析并明确提示，不能自动重写身份。
+
+SSE:/SZSE:是当前交易日匹配的两个支持前缀，calendar.market相应为SSE/SZSE；CN、不支持前缀或裸代码会警告而不猜测归属。未导入与截止后才可得日历在当前快照均显示“无可见日历”，不能为给精确原因读取未来数据。可见但不匹配市场、当前日历缺失、前交易日历/行情缺失和两日基金数据不齐分别指出下一步。
+
+| 结果 | 当前实际代码的最少数据与条件（均受as-of约束） |
+|---|---|
+| 成交倍数 | 当前行情+60条先前成交额；前60条中位数必须>0。当前日排除，不要求基金/成分表 |
+| 成交分位 | 当前行情+120条先前有效行情，历史最多252条；当前成交额排除 |
+| 当前收益/幅度/冲击 | 当前与前一条可比行情；日历确认的前交易日须等于前行情日。冲击另要求当前成交额>0。只有一条时未知 |
+| 冲击分位 | 120个先前有效冲击值，历史相邻价格配对且该行成交额>0；排除当前冲击。全有效时至少122条行情。行数不等于冲击值数。当前冲击还受上行条件限制 |
+| ETF净申赎规模估值 | 同身份当前与日历/行情确认的前交易日份额、单位净值与折算因子；可比份额差×当前可比净值。不是资金到账或账户交易 |
+| 样本宽度/中位收益 | 至少一条同日同index_id且eligible=1的成分收益，不要求权重；只能代表样本 |
+| 贡献/指数收益代理 | 上述成员每行有期初权重，合计与1的绝对差<0.01；不自动归一化，不冒称官方指数 |
+| 主题占比/宽度 | 至少一条有效sector，成交分母>0、数量及范围已核；占比不需要120日 |
+| 主题历史分位 | 当前sector+120条先前同theme/market_scope有效占比，最多252条；不是30日阈值 |
+| 融资活动 | 同最新行情日的融资买入、偿还，各universe分别观察；余额可空，不是完整两融/融券 |
+
+当前历史冲击配对沿用原算法，并非每个历史日期均经日历连续性认证。原算法没有额外把“当前日日历条目缺失”作为计算阻断（只检查已知休市和前日连续性）；本次明确警告该缺口，不悄悄改变历史算法。需要加强这两项时应单独审查方法变更，不能因诊断通过宣称完整交易日认证。
+
+### 可独立导出的教学输入
+
+`python scripts/export_examples.py --output work/teaching-inputs-new`生成完整六类CSV和两份narrative JSON及中文说明，目录已存在则拒绝覆盖。示例复用原demo，带真实形态代码但全部数值/份额/日历为构造，必须放独立数据库并使用`--demo`；不混入真实资料。`template`仍只生成空表头。
+
+```powershell
+python scripts/export_examples.py --output work/teaching-inputs-new
+python scripts/run.py import --db work/teaching.sqlite3 --demo --kind market --input work/teaching-inputs-new/market.csv --source "合成教学，人民币元" --human
+python scripts/run.py import --db work/teaching.sqlite3 --demo --kind calendar --input work/teaching-inputs-new/calendar.csv --source "虚构教学日历" --human
+python scripts/run.py import --db work/teaching.sqlite3 --demo --kind fund --input work/teaching-inputs-new/fund.csv --source "构造份额与净值" --human
+python scripts/run.py assess --db work/teaching.sqlite3 --demo --as-of 2026-10-09T22:00:00+08:00 --out-dir work/teaching-reports --human
+python scripts/run.py narrative --input work/teaching-inputs-new/unverified.json --out-dir work/unverified-report --human
+```
+
+其余financing/breadth/sector按对应kind导入同一教学分区。`unverified.json`是未取得原文的媒体转述，多个缺项一并显示，必须未知；另一份已核教学假设不代表真实认证。verified只是人工声明，不指导填true或伪造期间通过。主张可提供summary供报告显示，HTML/表格符号转义；未提供时仍用主体/范围/类型回退。
+
 脚本只用Python标准库，Python 3.10以上。数据库放本次工作目录，例如work/marketlens.sqlite3；结果放本次任务允许的交付目录。默认无联网适配器，UTF-8 CSV，金额人民币元，股/份，收益率用小数。
 
 用`run.py template --kind market --output 目标.csv`生成列名。按模块导入，不要求六种文件齐全。

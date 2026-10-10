@@ -3,6 +3,7 @@ import argparse
 import csv
 import io
 import json
+import html
 import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -19,7 +20,7 @@ def number(value, percent=False):
 
 
 def table_cell(value):
-    return str(value).replace("|", "\\|").replace("\r", " ").replace("\n", " ")
+    return html.escape(str(value), quote=False).replace("|", "\\|").replace("\r", " ").replace("\n", " ")
 
 
 def local_time(value):
@@ -35,6 +36,8 @@ def report(data):
         for c in data["claims"]:
             claim = c["claim"]
             label = f"{claim.get('actor','未知')} / {claim.get('scope','未知')} / {type_labels[claim['type']]}"
+            if claim.get("summary"):
+                label = str(claim["summary"])
             if claim.get("amount_cny") is not None:
                 label += f"（{claim['amount_cny']/1e8:,.2f}亿元）"
             lines.append("| "+" | ".join(map(table_cell,[label, c["status"], ", ".join(evidence_labels[e] for e in c["support_ids"]) or "无"]))+" |")
@@ -43,6 +46,8 @@ def report(data):
             lines += [f"- {evidence_labels[e['id']]}：{e['source']}，{local_time(e['available_at'])}；原句：{e['quote']}"]
         for e in data["excluded_evidence"]:
             lines += [f"- 未采用 {e['id']}：{e['reason']}"]
+            if e.get("conditions_not_met"):
+                lines += ["  未满足：" + table_cell("；".join(e["conditions_not_met"])), "  下一步：" + e["next_step"]]
         if data.get("superseded_evidence_ids"):
             lines += ["- 已被明确更正替代的旧依据："+", ".join(evidence_labels[e] for e in data["superseded_evidence_ids"])+"；历史原句仍留档。"]
         for c in data["claims"]:
@@ -62,6 +67,9 @@ def report(data):
         lines += [f"- {c['category']}：本地池{c['count']}只ETF，净申赎规模估值 {number(c['value'])}元。"]
     for s in data["sectors"]:
         lines += [f"- {s['date']}主题“{s['theme']}”，范围“{s['market_scope']}”：成交占比{number(s['fraction'],True)}，历史分位{number(s['percentile'])}；{s['status']}。"]
+    for item in data["cards"] + data["sectors"]:
+        for diagnostic in item.get("diagnostics", []):
+            lines += [f"- 输入检查 {diagnostic['code']}：{diagnostic['message']} 下一步：{diagnostic['next_step']}"]
     lines += ["", "## 事件证据", ""]
     if not data["evidence"]:
         lines += ["尚无可用主体证据。不能从市场异常推断谁在买卖。"]
@@ -90,10 +98,11 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description="市场明镜：本地数据计算与证据检查")
     sub = parser.add_subparsers(dest="command", required=True)
     template = sub.add_parser("template")
-    template.add_argument("--kind", choices=SCHEMAS, required=True)
+    kind_help = "market行情；fund基金份额/净值；financing融资买入/偿还/余额（不含完整两融或融券）；breadth成分收益/权重；sector主题成交与分母；calendar市场交易日历"
+    template.add_argument("--kind", choices=SCHEMAS, required=True, help=kind_help)
     template.add_argument("--output", required=True)
     imp = sub.add_parser("import")
-    imp.add_argument("--kind", choices=SCHEMAS, required=True)
+    imp.add_argument("--kind", choices=SCHEMAS, required=True, help=kind_help)
     imp.add_argument("--input", required=True)
     imp.add_argument("--source", required=True)
     for name in ["import", "assess", "demo", "record-evidence", "review-evidence", "replay", "status"]:
@@ -166,6 +175,8 @@ def main(argv=None):
             print(f"合成检查：通过{result['passed']}，失败{result['failed']}，错误{result['errors']}；不代表真实识别准确率。", file=sys.stderr)
         else:
             print("本地操作已完成，详情见stdout JSON；证据记录仍按审核状态处理。", file=sys.stderr)
+        for warning in result.get("warnings", []):
+            print(warning["message"] + " 下一步：" + warning["next_step"], file=sys.stderr)
     if args.command == "self-test" and (result["failed"] or result["errors"]):
         sys.exit(1)
 
