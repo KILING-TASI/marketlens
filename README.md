@@ -1,103 +1,97 @@
 # 市场明镜 MarketLens
 
-**市场噪音识别与证据分析系统**  
-Market Noise Detection and Evidence Analysis System（MNDEAS）
+看市场消息有哪些证据：指数上涨是否只是少数股票带动，ETF放量能否说明谁在买，回购公告到底兑现了多少。
 
-市场明镜是一个Codex研究Skill：用自然语言分析中国股票、ETF、政策及公告相关叙事，区分市场事实、竞争解释、主体证据与未知信息。需要数字时调用本地计算脚本；无需启动网站。
+[![原创代码 MIT](https://img.shields.io/badge/原创代码-MIT-blue)](LICENSE)
 
-首版：**v0.1.0**。Python 3.10以上，计算脚本只使用标准库。
+## 最短试用
 
-## 能用来做什么
+需要 **Python 3.10 或以上**，只用标准库，无需安装其他仓库、行情接口或密钥。下面使用当前 `main` 源码，离线生成教学报告。
 
-- 判断指数上涨是否由少数股票贡献，限定导入成分样本范围。
-- 观察ETF成交异常、净份额变化与融资活动的分歧。
-- 核查热门概念是否有业务、订单、收入或利润依据。
-- 区分回购/增持计划、实际执行、累计进展与正式更正。
-- 按指定截止时刻回放资料，分别处理当时已审核结论与事后核验的公开信息。
-- 保留来源、时间、单位、版本和缺失项，减少重复叙事造成的误判。
-
-“ETF放量、份额下降、融资增加”不能直接证明“国家队撤退、散户接盘”。系统把这些事实分别分析，确认主体与交易需要范围明确的原始披露。
-
-## 作为Skill使用
-
-仓库名与Skill名都为`marketlens`，`SKILL.md`的frontmatter `name: marketlens`，安装目录也必须为`marketlens/`；`agents/openai.yaml`和`references/`、`scripts/`为配套资源，README不是Skill入口。当前是待审源码，正式Release仍为v0.1.0；旧Release不含新增情景与人类提示选项，下面的新选项只适用于待审源码包。
-
-将本仓库的`SKILL.md`、`agents/`、`references/`、`scripts/`安装到Codex用户Skill目录中的`marketlens/`。常规Windows路径为用户目录下的`.codex/skills/marketlens`；自定义CODEX_HOME时使用其`skills/marketlens`。已有同名Skill时先比较版本和保留个人修改。
-
-保留包中的LICENSE和THIRD_PARTY_NOTICES.md。无需pip依赖、PDF解析extra或其他自家仓库；本仓没有PDF解析器，原文核验需人工处理。只运行本地CLI不要求安装为Skill或依赖研究工作台；自然语言入口需能发现Skill的Codex环境，CLI通过不证明发现或视觉已验收。本批不自动安装或覆盖已有Skill。
-
-也可以从[发布页](https://github.com/KILING-TASI/marketlens/releases)下载安装包，其顶层目录已经叫`marketlens`。在能够识别新Skill的对话中调用：
-
-```text
-$marketlens 分析这段市场消息，区分事实、推断和缺失证据。
-```
-
-其他例子：
-
-```text
-用市场明镜核对这份回购公告：哪些只是计划，哪些已经执行？
-以昨天18点为截止，分析当时公开信息可以支持什么，今日披露另讲。
-读取我提供的ETF数据，计算净申赎规模估值和融资活动分歧。
-```
-
-## 本地计算与试用
-
-Windows先确认`python --version`为3.10以上，在解压后的`marketlens`目录打开PowerShell。可复制最短人类用法：
+下载本仓源码后，在 `marketlens` 目录打开 Windows PowerShell：
 
 ```powershell
+python --version
 python scripts/run.py demo --db work/demo.sqlite3 --out-dir work/demo-results --human
+```
+
+提示会给出结果目录和要打开的 **Markdown 报告**，同目录另有 JSON 底稿。示例行情与交易日历均为合成数据。
+
+想看完整情景实例：
+
+```powershell
 python scripts/run_scenarios.py --output work/scenarios-new --human
 ```
 
-中文提示指出结果目录和要打开的Markdown，均为合成教学、离线标准库运行，无HTML界面。`--human`仅往stderr写提示；stdout仍为原JSON且返回键不变，机器调用可省略该选项。情景目录必须尚不存在，重跑换新目录名；已有冻结报告可用replay，不靠强制覆盖。缺输入时核对文件/字段/权限，不自动安装依赖或联网找替代数据。联网原页核验属于人工研究步骤，不是本地脚本的自动取数功能。
+打开生成的 `work/scenarios-new/scenario-index.md`。情景目录必须尚不存在；再次运行时换个名字，例如 `work/scenarios-next`，保留旧结果。`--human` 把中文提示写到 stderr，stdout 仍是可供程序读取的 JSON。
 
-在仓库根目录运行。数据和结果写工作目录，不写Skill安装目录：
+## 结果示例
+
+**样本多数下跌，但少数大权重股票使贡献代理为正。** 教学数据中，10只股票有3只上涨、7只下跌，中位收益为−0.2%；按期初权重手算的贡献代理为+1.52%。这是导入样本的观察，不能当作官方指数收益或全市场结论。
+
+**ETF放量、份额减少、融资活动增加，仍无法确认谁在买卖。** 另一组教学结果显示份额减少100万份，融资买入减偿还为10亿元；两者覆盖范围不同，也不能合并成某类投资者的资金流。
+
+这些实例通过上述情景入口实际生成报告。北向季度持仓、回购累计更正和主题业务进展的例子也在同一索引中，输入、预期与实际结果另存 JSON。
+
+## 能做什么，暂不支持什么
+
+| 可以做 | 使用时的边界 |
+|---|---|
+| 计算成交分位、样本上涨比例和权重贡献代理 | 限定导入样本；统计分位不是概率 |
+| 对照ETF份额、净值和融资活动 | 净申赎规模是估值，成交额不是净现金，不能识别账户 |
+| 核对回购计划、执行、累计进展与正式更正 | 原文与审核状态分开，未披露或未审核的部分保留未知 |
+| 检查季度持仓和主题业务说法 | 持仓不等于当天买入，技术进展不自动证明收入或利润 |
+| 按截止时间生成、冻结和回放中文报告 | 历史可得时间须有依据，晚披露不能倒填 |
+
+目前没有自动行情采集、完整全市场历史池、分钟IOPV、自动原文认证、收益预测或交易执行。也没有PDF解析器；业务、合同和原句含义需人工核对。需要实际研究时，使用自己已合法取得的资料；本地脚本不把输入上传第三方，也不启动后台服务。
+
+字段、单位和缺口处理见[数据契约](references/data-contract.md)，开发范围见[能力说明](references/capabilities.md)。
+
+## 独立使用与 Skill 安装
+
+**可以直接运行本地CLI，也可以作为Codex Skill使用。** 两种入口都不依赖研究工作台或其他自家仓库；MarketLens负责市场叙事与证据检查，公司经营和综合判断不由这里包办。
+
+仓库名、Skill名称和安装目录均为 `marketlens`；[SKILL.md](SKILL.md)里的真实名称是 `name: marketlens`。要在Codex中使用，保留以下文件一起安装：
 
 ```text
+marketlens/
+  SKILL.md
+  agents/
+  references/
+  scripts/
+  LICENSE
+  THIRD_PARTY_NOTICES.md
+```
+
+Windows常规目录为 `%USERPROFILE%\.codex\skills\marketlens`；自定义 `CODEX_HOME` 时放在其 `skills\marketlens` 下。已有同名Skill时先保留个人修改、比较版本。可以从当前源码生成完整包：
+
+```powershell
+python scripts/build_package.py --output work/marketlens-skill.zip
+```
+
+包文件已存在时换新名字，打包器不会覆盖。安装后，在能识别该Skill的Codex对话中使用：
+
+```text
+$marketlens 核对这份回购公告：哪些只是计划，哪些已经执行？
+$marketlens 这段消息说ETF放量就是国家队买入，现有证据能支持吗？
+```
+
+本地CLI的计算、叙事检查与打包已验收；自然语言Skill发现和视觉效果没有纳入独立安装验收。
+
+## 当前源码与旧安装包
+
+`main` 已集成许可、独立安装验收、9类报告情景和 `--human` 中文提示，尚未发布包含这些更新的新Release。下载或克隆当前源码即可使用上面的命令。
+
+[旧Release v0.1.0](https://github.com/KILING-TASI/marketlens/releases/tag/v0.1.0)保留原样：它能运行原有demo，但不含新增情景入口、`--human`、打包脚本及新增许可文件。使用旧包时去掉 `--human`：
+
+```powershell
 python scripts/run.py demo --db work/demo.sqlite3 --out-dir work/demo-results
-python scripts/run.py template --kind market --output work/market.csv
-python scripts/run.py import --db work/research.sqlite3 --kind market --input work/market.csv --source "稳定来源名称及口径"
-python scripts/run.py assess --db work/research.sqlite3 --as-of 2026-10-09T22:00:00+08:00 --out-dir work/results
-python scripts/run.py self-test --out-dir work/tests
 ```
 
-demo数据和交易日历均为合成，不能当作真实行情。示例与真实导入分区隔离。命令示例中的时间仅用于演示，应改为实际研究截止时刻。
+用户已安装的Skill不会因仓库更新而自动变化。源码、Release和本地安装分别确认，详细版本含义见[数据契约](references/data-contract.md)。
 
-六种CSV与计算口径见[数据契约](references/data-contract.md)。只有文字消息时可以直接使用Skill，无需准备CSV。结构化叙事脚本检查已整理的时点、范围和阶段，不自动理解或认证原文。
+## 验证、许可与来源
 
-职责边界、实际入口目录、来源与时间缺口、版本和本批交付状态统一见[数据契约与状态](references/data-contract.md#数据入口目录与职责2026-10-10盘点)。目前独立运行、不依赖其他仓库；跨仓共同样本尚未验证，旁路来源记录头仅为设计。PR #1中的许可与文档变化待审，main、旧Release和既有安装版未随之更新。
-
-## 验证
-
-教学情景短入口：`python scripts/run_scenarios.py --output work/scenarios-new`（使用新的目录，不覆盖旧结果）。它复用44项现有检查，并实际生成6类CLI报告：样本多数下跌/贡献代理上涨、成交份额融资背离、回购计划与执行及累计更正、计划伪标执行失败、未知可得时点、冲突来源与旧结果冻结。输出`scenario-index.md`和`scenario-manifest.json`保存输入、独立预期、实际、完整命令与方法版本；全部为合成教学。[情景范围与独立验收](docs/validation.md)
-
-CN补充批沿用同一入口，增加3类，当前共9类：季度沪股通持仓不推实时买入、不同融资池不相加、主题技术进展不确认收入或证券买家。原6类继续复用；[官方口径与适用条件](references/cn-scenarios.md)记录核验日期、规则版本和边界，不计算真实沪股通交易日，也不自动认证教学原句。
-
-首版完成三轮独立自然语言情景复查，覆盖9个复合请求；优化后的44项计算及证据约束检查通过，另完成9步实际命令调用。[测试与边界说明](docs/validation.md)
-
-GitHub Actions在Windows/Linux及Python 3.10/3.12上运行本地检查，不需要行情API、账户或密钥。模拟测试不代表真实市场识别准确率、预测能力或收益。
-
-## 已实现与边界
-
-已有：CSV导入、成交分位、样本宽度与贡献代理、净申赎估值、融资并列、池内类别汇总、主题成交占比、证据记录与审核、更正、结果回放和中文报告。
-
-未接通自动行情，也未自动实现完整全市场历史池、分钟IOPV、财务/一致预期、IPO/组合或收益预测模型。现实研究需要取得原始材料并核对真实性、可用时间与口径。
-
-成交额不是净现金流，份额不是账户身份，持仓存量不等于具体交易。95/99分位不是概率；期初权重贡献是代理；观察池不完整时不能外推全市场。系统不执行交易、不默认联网、不启动后台任务、不把用户文件上传第三方接口。
-
-## 许可与数据权利
-
-有权许可的原创代码、Skill说明、结构定义与合成示例采用[MIT许可证](LICENSE)，版权主体为KILING-TASI。第三方内容保留原许可，详见[第三方与数据权利说明](THIRD_PARTY_NOTICES.md)。公告、研报、付费数据、用户导入、引用原文、标识和第三方素材不会因MIT取得再分发权；生成报告的原创结构与其中第三方内容分别处理。
-
-新安装包通过`python scripts/build_package.py --output work/marketlens-skill.zip`生成，包含两份许可文件，不覆盖已有压缩包。已发布v0.1.0安装包不包含新增许可文件，本次不替换该资产、不发布新版本。
-
-## 仓库结构
-
-```text
-SKILL.md                 自然语言研究入口
-agents/openai.yaml       Skill展示元数据
-references/              证据、数据、能力与验证细则
-scripts/run.py           本地命令入口
-scripts/marketlens/      计算、叙事约束、示例与测试
-docs/validation.md       压力测试与优化说明
-```
+- 验证：44项计算与证据约束检查、9类实际CLI报告情景，独立源码包在标准库虚拟环境中运行；CI覆盖Windows/Linux和Python 3.10/3.12。[验证范围与复现方法](docs/validation.md)
+- 来源：CN情景的官方规则版本、核验日期和适用条件见[官方口径说明](references/cn-scenarios.md)；主体、时点和原句的核查方法见[叙事与证据](references/narrative-evidence.md)。教学检查通过不代表真实识别准确率或收益。
+- 许可：有权许可的原创代码、Skill说明与合成示例采用[MIT](LICENSE)，版权主体KILING-TASI。公告、研报、数据和标识保留各自权利，详见[第三方与数据权利说明](THIRD_PARTY_NOTICES.md)。
