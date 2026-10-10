@@ -82,7 +82,7 @@ $marketlens 这段消息说ETF放量就是国家队买入，现有证据能支�
 
 ## 当前源码与旧安装包
 
-`main` 已集成许可、独立安装验收、9类报告情景、`--human` 中文提示和输入诊断。本分支准备的软件版本为 **v0.2.0**，候选待发布；当前已发布Release仍为v0.1.0。下载或克隆当前源码即可使用上面的命令，候选包不要当作已上线安装包。计算标识仍为`v3-pilot-0.1`，诊断说明为`input-diagnostics-1`，接口与历史结果不随软件版本升级重写。[v0.2.0发布准备说明](docs/release-v0.2.0.md)
+当前源码与最新安装包为 **v0.2.0**，包含许可、独立安装验收、9类报告情景、`--human` 中文提示和输入诊断。可从[v0.2.0发布页](https://github.com/KILING-TASI/marketlens/releases/tag/v0.2.0)下载[Skill安装包](https://github.com/KILING-TASI/marketlens/releases/download/v0.2.0/marketlens-skill-v0.2.0.zip)与[SHA256校验文件](https://github.com/KILING-TASI/marketlens/releases/download/v0.2.0/SHA256SUMS.txt)，或克隆当前源码使用上面的命令。计算标识仍为`v3-pilot-0.1`，诊断说明为`input-diagnostics-1`，接口与历史结果不随软件版本升级重写。[发布与构建说明](docs/release-v0.2.0.md)
 
 [旧Release v0.1.0](https://github.com/KILING-TASI/marketlens/releases/tag/v0.1.0)保留原样：它能运行原有demo，但不含新增情景入口、`--human`、打包脚本及新增许可文件。使用旧包时去掉 `--human`：
 
