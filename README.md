@@ -56,6 +56,8 @@ demo数据和交易日历均为合成，不能当作真实行情。示例与真�
 
 ## 验证
 
+教学情景短入口：`python scripts/run_scenarios.py --output work/scenarios-new`（使用新的目录，不覆盖旧结果）。它复用44项现有检查，并实际生成6类CLI报告：样本多数下跌/贡献代理上涨、成交份额融资背离、回购计划与执行及累计更正、计划伪标执行失败、未知可得时点、冲突来源与旧结果冻结。输出`scenario-index.md`和`scenario-manifest.json`保存输入、独立预期、实际、完整命令与方法版本；全部为合成教学。[情景范围与独立验收](docs/validation.md)
+
 首版完成三轮独立自然语言情景复查，覆盖9个复合请求；优化后的44项计算及证据约束检查通过，另完成9步实际命令调用。[测试与边界说明](docs/validation.md)
 
 GitHub Actions在Windows/Linux及Python 3.10/3.12上运行本地检查，不需要行情API、账户或密钥。模拟测试不代表真实市场识别准确率、预测能力或收益。

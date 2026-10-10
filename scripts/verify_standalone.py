@@ -5,6 +5,7 @@ import json
 import os
 from pathlib import Path
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -116,6 +117,11 @@ def verify(output, archive=None):
             run(["scripts/build_package.py", "--output", "work/package.zip"])
             refusal = run(["scripts/build_package.py", "--output", "work/package.zip"], 1)
             assert "Refusing to overwrite" in refusal.stderr
+            scenario = run(["scripts/run_scenarios.py", "--output", "work/scenarios"])
+            assert json.loads(scenario.stdout)["passed_cases"] == 6
+            refusal = run(["scripts/run_scenarios.py", "--output", "work/scenarios"], 2)
+            assert "already exists" in refusal.stderr
+            shutil.copytree(root / "work/scenarios", output / "scenarios", dirs_exist_ok=True)
         evidence = {"scope": "directory/process isolation; host still contains other repositories",
                     "archive_sha256": digest, "archive_files": names, "dependencies": "Python standard library only; venv without pip",
                     "origins": origins, "commands": records, "notices": notices,
