@@ -130,3 +130,7 @@ main与Release v0.1.0为初始发布；本批变化在PR #1的开发分支，尚
 ## 单批CSV限制
 
 当前Store.import_csv拒绝解码文本长度大于8,000,000字符的批次；边界按字符数，不按UTF-8文件字节或MiB。拆分须保留完整行、每批表头及明确来源；本限制不是总数据库规模或性能认证。
+
+## 可选行情数据准备
+
+cn-data-adapters新增日线档案到market.csv导出，核对全区间因子为1后，可用本仓原import --kind market导入；见其DATA_ACQUISITION.md。其他五类仍自行整理，MarketLens不强制依赖采集仓，不把available_at回填观察日。

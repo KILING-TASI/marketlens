@@ -17,3 +17,5 @@ recursive-include examples/expansion-teaching *.json
 include EXPANSION_RELEASE.md
 
 include AUDIT_SCOPE.md
+
+include README.en.md CHANGELOG.md
