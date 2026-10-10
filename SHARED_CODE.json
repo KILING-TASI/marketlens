@@ -1,0 +1,23 @@
+{
+  "schemaVersion": "fixed-shared-components/1",
+  "hashFormat": "UTF-8 with LF newlines",
+  "components": [
+    {
+      "localPath": "scripts/marketlens/review_io.py",
+      "normalizedTextSha256": "c8e995fff7830ca02127ab5ba4605aa60e99c358a86635dece08ba92ab8afea5",
+      "canonicalRepository": "cn-data-adapters",
+      "canonicalPath": "cn_data_adapters/review_io.py",
+      "syncPolicy": "fixed-with-distribution; review and regenerate manifest before replacing; no runtime source dependency",
+      "licenseScope": "see repository third-party notices; inventory does not grant rights"
+    },
+    {
+      "localPath": "setup.py",
+      "normalizedTextSha256": "69d9c745c320f8f121f9e8f20ef5823fa411d32170f8188fd83dd52c5b5aaf5e",
+      "canonicalRepository": "research-workbench",
+      "canonicalPath": "setup.py",
+      "syncPolicy": "fixed-with-distribution; review and regenerate manifest before replacing; no runtime source dependency",
+      "licenseScope": "see repository third-party notices; inventory does not grant rights"
+    }
+  ],
+  "scope": "This inventory covers discovered equal original Python text, not proof of all interfaces being equivalent; divergent variants are not merged"
+}
