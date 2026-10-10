@@ -4,6 +4,21 @@
 
 [![原创代码 MIT](https://img.shields.io/badge/原创代码-MIT-blue)](LICENSE)
 
+## 安装和首次试用
+
+本轮对应[发布页](https://github.com/KILING-TASI/marketlens/releases/tag/v0.2.1)；下载时以实际上传的完整源码、wheel、sdist 与校验清单为准。源码按下面步骤安装；下载 wheel 后，将安装命令末尾的 `.` 换成该 wheel 文件路径。pip 安装不会自动注册 AI 工具中的 Skill。
+
+本轮源码版本为 `0.2.1`。统一安装入口需要 Python 3.10 或以上。在完整源码目录新建自己的 Python 环境，下面的 Windows 命令不需要激活脚本：
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\python.exe -m pip install .
+.\.venv\Scripts\marketlens.exe --help
+.\.venv\Scripts\marketlens.exe demo --out-dir reports/demo --auto-name
+```
+
+工具名与仓库名相同；在已激活的环境中可以直接输入工具名。Linux/macOS 使用 `.venv/bin/python` 和 `.venv/bin/marketlens`。教学结果写入当前工作目录；`--auto-name` 自动另选新名字，旧结果保留。不加该参数时，教学入口拒绝已有目录。`marketlens run --help` 查看原生参数，原来的命令继续兼容。其他专题可用 `marketlens script --help` 查看入口，以脚本名调用，不需要记住源码路径。pip 安装提供 CLI；作为 Skill 使用仍须保留完整源码及许可资源，不能只复制 SKILL.md。安装可能需要联网获取普通构建依赖；教学离线。下面保留原生入口及此前发行记录，本轮安装和版本以本节为准。
+
 ## 最短试用
 
 需要 **Python 3.10 或以上**，只用标准库，无需安装其他仓库、行情接口或密钥。下面使用当前 `main` 源码，离线生成教学报告。
@@ -45,7 +60,7 @@ python scripts/run_scenarios.py --output work/scenarios-new --human
 
 目前没有自动行情采集、完整全市场历史池、分钟IOPV、自动原文认证、收益预测或交易执行。也没有PDF解析器；业务、合同和原句含义需人工核对。需要实际研究时，使用自己已合法取得的资料；本地脚本不把输入上传第三方，也不启动后台服务。
 
-字段、单位和缺口处理见[数据契约](references/data-contract.md)，开发范围见[能力说明](references/capabilities.md)。
+证券身份明确写成 `SSE:510300` 或 `SZSE:159919`；日频日历的 `market` 对应写 `SSE` 或 `SZSE`。`CN` 不是交易所别名，不能替代它们；不确定交易所时保留未知，不按代码猜测。字段、单位和缺口处理见[数据契约](references/data-contract.md)，开发范围见[能力说明](references/capabilities.md)。
 
 需要完整教学CSV与叙事JSON时，运行`python scripts/export_examples.py --output work/teaching-inputs-new`；新目录内有六类CSV、未核原文/已核教学两份JSON和中文说明。导入时使用独立数据库与`--demo`，具体步骤和每项计算的最低数据见[输入诊断说明](references/data-contract.md#输入诊断与兼容说明)。空模板仍只有表头；裸证券代码与不匹配日历会明确警告，不自动猜交易所。
 
@@ -53,7 +68,7 @@ python scripts/run_scenarios.py --output work/scenarios-new --human
 
 **可以直接运行本地CLI，也可以作为Codex Skill使用。** 两种入口都不依赖研究工作台或其他自家仓库；MarketLens负责市场叙事与证据检查，公司经营和综合判断不由这里包办。
 
-仓库名、Skill名称和安装目录均为 `marketlens`；[SKILL.md](SKILL.md)里的真实名称是 `name: marketlens`。要在Codex中使用，保留以下文件一起安装：
+仓库名、Skill名称和安装目录均为 `marketlens`；[SKILL.md](SKILL.md)里的真实名称是 `name: marketlens`。安装 Skill 时复制完整源码目录或解压完整 Skill ZIP，保留说明、代码、参考及许可；不要按零散文件清单裁剪：
 
 ```text
 marketlens/
@@ -61,6 +76,8 @@ marketlens/
   agents/
   references/
   scripts/
+  README.md
+  docs/
   LICENSE
   THIRD_PARTY_NOTICES.md
 ```
@@ -82,7 +99,7 @@ $marketlens 这段消息说ETF放量就是国家队买入，现有证据能支�
 
 ## 当前源码与旧安装包
 
-当前源码与最新安装包为 **v0.2.0**，包含许可、独立安装验收、9类报告情景、`--human` 中文提示和输入诊断。可从[v0.2.0发布页](https://github.com/KILING-TASI/marketlens/releases/tag/v0.2.0)下载[Skill安装包](https://github.com/KILING-TASI/marketlens/releases/download/v0.2.0/marketlens-skill-v0.2.0.zip)与[SHA256校验文件](https://github.com/KILING-TASI/marketlens/releases/download/v0.2.0/SHA256SUMS.txt)，或克隆当前源码使用上面的命令。计算标识仍为`v3-pilot-0.1`，诊断说明为`input-diagnostics-1`，接口与历史结果不随软件版本升级重写。[发布与构建说明](docs/release-v0.2.0.md)
+此前发行安装包为 **v0.2.0**，包含许可、独立安装验收、9类报告情景、`--human` 中文提示和输入诊断。可从[v0.2.0发布页](https://github.com/KILING-TASI/marketlens/releases/tag/v0.2.0)下载[Skill安装包](https://github.com/KILING-TASI/marketlens/releases/download/v0.2.0/marketlens-skill-v0.2.0.zip)与[SHA256校验文件](https://github.com/KILING-TASI/marketlens/releases/download/v0.2.0/SHA256SUMS.txt)，或克隆当前源码使用上面的命令。计算标识仍为`v3-pilot-0.1`，诊断说明为`input-diagnostics-1`，接口与历史结果不随软件版本升级重写。[发布与构建说明](docs/release-v0.2.0.md)
 
 [旧Release v0.1.0](https://github.com/KILING-TASI/marketlens/releases/tag/v0.1.0)保留原样：它能运行原有demo，但不含新增情景入口、`--human`、打包脚本及新增许可文件。使用旧包时去掉 `--human`：
 
