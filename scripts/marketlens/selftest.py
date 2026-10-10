@@ -107,6 +107,13 @@ class TimelineRound(unittest.TestCase):
 
 
 class NarrativeRound(unittest.TestCase):
+    def test_qualitative_summary_is_not_semantically_verified(self):
+        r=analyze(story([fact()], [claim(summary="收入下降，业绩暴雷")]))
+        c=r["claims"][0]
+        self.assertTrue(c["support_ids"])
+        self.assertEqual(c["semantic_verification"],"not_performed")
+        self.assertEqual(c["verification_scope"],"structured_fields_only")
+
     def test_mixed_claims_judged_separately(self):
         r = analyze(story([fact()], [claim(), claim(id="c2", scope="SSE:510300", amount_cny=1e9)]))
         self.assertTrue(r["claims"][0]["support_ids"])

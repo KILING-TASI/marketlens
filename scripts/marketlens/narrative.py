@@ -144,7 +144,7 @@ def analyze(data):
             matches.append(e["id"])
         retrospective = any(e.get("retrospectively_verified") and e["id"] in matches for e in effective)
         status = "存在冲突，需核对" if conflicts else "当时公开资料在范围内支持（事后核验）" if matches and retrospective else "在证据范围内有支持" if matches else "证据不足，不能确认"
-        results.append({"claim_id": claim["id"], "claim": claim, "status": status, "support_ids": matches, "limited": limited, "conflicts": conflicts})
+        results.append({"claim_id": claim["id"], "claim": claim, "status": status, "support_ids": matches, "verification_scope": "structured_fields_only", "semantic_verification": "not_performed", "scope_note": "仅核对主体、范围、证据类型及已填写的动作、日期和金额；未核实整句含义或定性判断。", "limited": limited, "conflicts": conflicts})
     if not records:
         gaps.append("没有原始证据，仅能讨论可能解释，不能确认账户身份或执行")
     if excluded:

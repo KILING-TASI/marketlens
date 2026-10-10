@@ -34,7 +34,7 @@ def run(output, human=False):
                       "expected": expected, "actual": actual, "method": method, "passed": True})
 
     checks = invoke("self-test", "--out-dir", out / "existing-checks")
-    assert checks["passed"] == 44 and checks["failed"] == 0 and checks["errors"] == 0
+    assert checks["passed"] == checks["tests"] and checks["tests"] >= 45 and checks["failed"] == 0 and checks["errors"] == 0
     db = out / "teaching.sqlite3"
     paths = invoke("demo", "--db", db, "--out-dir", out / "baseline")
     baseline = snapshot(paths)

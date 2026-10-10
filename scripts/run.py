@@ -32,7 +32,7 @@ def report(data):
         replay_label = "复现当时已审核结论" if data["replay_mode"] == "confirmed_state" else "事后核验当时公开信息"
         evidence_labels = {e["id"]: f"证据{i+1}" for i,e in enumerate(data["available_evidence"])}
         type_labels = {"actor_execution":"已执行交易", "holdings":"持仓披露", "plan":"计划", "business":"业务兑现"}
-        lines = ["# 市场明镜 叙事证据检查", "", "**合成压力情景，非真实市场判断。**" if data["simulation"] else "按提供的资料进行结构化检查，来源真实性仍需人工核实。", "", f"截止时间：{local_time(data['as_of'])}；回放口径：{replay_label}", "", "| 主张 | 判断 | 支持来源 |", "|---|---|---|"]
+        lines = ["# 市场明镜 叙事证据检查", "", "**合成压力情景，非真实市场判断。**" if data["simulation"] else "按提供的资料进行结构化检查，来源真实性仍需人工核实。", "", f"截止时间：{local_time(data['as_of'])}；回放口径：{replay_label}", "", "**下表只表示结构化字段匹配，不代表整句话已核实。‘业绩暴雷’等定性判断须拆开并人工核对，不能由字段匹配确认。**", "", "| 主张 | 字段检查状态（非整句核实） | 匹配来源 |", "|---|---|---|"]
         for c in data["claims"]:
             claim = c["claim"]
             label = f"{claim.get('actor','未知')} / {claim.get('scope','未知')} / {type_labels[claim['type']]}"
