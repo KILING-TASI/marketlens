@@ -24,7 +24,7 @@
 
 ## 安装和首次试用
 
-安装包见[发布页](https://github.com/KILING-TASI/marketlens/releases/tag/v0.2.4)；下载时以实际上传的完整源码、wheel、sdist 与校验清单为准。源码按下面步骤安装；下载 wheel 后，将安装命令末尾的 `.` 换成该 wheel 文件路径。pip 安装不会自动注册 AI 工具中的 Skill。
+安装包见[发布页](https://github.com/KILING-TASI/marketlens/releases/tag/v0.2.4)，提供完整源码、wheel、sdist 和校验清单。源码按下面步骤安装；下载 wheel 后，将安装命令末尾的 `.` 换成该 wheel 文件路径。pip 安装不会自动注册 AI 工具中的 Skill。
 
 安装包版本为 `0.2.4`。统一安装入口需要 Python 3.10 或以上。在完整源码目录新建自己的 Python 环境，下面的 Windows 命令不需要激活脚本：
 
@@ -37,26 +37,6 @@ python -m venv .venv
 
 工具名与仓库名相同；在已激活的环境中可以直接输入工具名。Linux/macOS 使用 `.venv/bin/python` 和 `.venv/bin/marketlens`。教学结果写入当前工作目录；`--auto-name` 自动另选新名字，旧结果保留。不加该参数时，教学入口拒绝已有目录。`marketlens run --help` 查看原生参数，原来的命令继续兼容。其他专题可用 `marketlens script --help` 查看入口，以脚本名调用，不需要记住源码路径。pip 安装提供 CLI；作为 Skill 使用仍须保留完整源码及许可资源，不能只复制 SKILL.md。安装可能需要联网获取普通构建依赖；教学离线。下面保留原生入口及此前发行记录，安装步骤和对应版本以本节为准。
 
-## 最短试用
-
-需要 **Python 3.10 或以上**，只用标准库，无需安装其他仓库、行情接口或密钥。下面使用当前 `main` 源码，离线生成教学报告。
-
-下载本仓源码后，在 `marketlens` 目录打开 Windows PowerShell：
-
-```powershell
-python --version
-python scripts/run.py demo --db work/demo.sqlite3 --out-dir work/demo-results --human
-```
-
-该原生入口输出 Markdown 报告和 JSON 底稿；上方 `Start-Demo.cmd` 或 `python try_demo.py` 会另生成便于浏览的 HTML 教学页。示例行情与交易日历均为合成数据。
-
-想看完整情景实例：
-
-```powershell
-python scripts/run_scenarios.py --output work/scenarios-new --human
-```
-
-打开生成的 `work/scenarios-new/scenario-index.md`。情景目录必须尚不存在；再次运行时换个名字，例如 `work/scenarios-next`，保留旧结果。`--human` 把中文提示写到 stderr，stdout 仍是可供程序读取的 JSON。
 
 ## 导入真实数据前：先核对样本数量
 
