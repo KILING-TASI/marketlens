@@ -82,7 +82,9 @@ def verify(output, archive=None):
             allowed = [root, virtual, Path(origins["base_prefix"])]
             assert any(resolved.is_relative_to(p.resolve()) for p in allowed), path
         result = run(["scripts/run.py", "demo", "--db", "work/demo.sqlite3",
-                      "--out-dir", "work/demo-results"])
+                      "--out-dir", "work/demo-results", *( ["--human"] if not archive else [])])
+        if not archive:
+            assert "打开Markdown" in result.stderr and "教学" in result.stderr
         paths = json.loads(result.stdout)
         snapshot = json.loads(Path(paths["snapshot"]).read_text(encoding="utf-8"))
         report = Path(paths["report"]).read_text(encoding="utf-8")
@@ -101,8 +103,10 @@ def verify(output, archive=None):
         # Missing available_at is an explicit error, never a zero or current-time fallback.
         (root / "work/bad.csv").write_text("date,instrument\n2026-10-09,SSE:510300\n", encoding="utf-8")
         bad = run(["scripts/run.py", "import", "--db", "work/bad.sqlite3", "--kind", "market",
-                   "--input", "work/bad.csv", "--source", "synthetic-invalid"], 2)
+                   "--input", "work/bad.csv", "--source", "synthetic-invalid", *(["--human"] if not archive else [])], 2)
         assert "列名" in bad.stderr
+        if not archive:
+            assert "下一步" in bad.stderr and bad.stdout == ""
         (root / "work/unknown-time.json").write_text(json.dumps({
             "as_of": "2026-10-09T18:00:00+08:00", "claims": [],
             "evidence": [{"id": "unknown-time"}]}), encoding="utf-8")
@@ -117,10 +121,13 @@ def verify(output, archive=None):
             run(["scripts/build_package.py", "--output", "work/package.zip"])
             refusal = run(["scripts/build_package.py", "--output", "work/package.zip"], 1)
             assert "Refusing to overwrite" in refusal.stderr
-            scenario = run(["scripts/run_scenarios.py", "--output", "work/scenarios"])
+            scenario = run(["scripts/run_scenarios.py", "--output", "work/scenarios", "--human"])
             assert json.loads(scenario.stdout)["passed_cases"] == 9
-            refusal = run(["scripts/run_scenarios.py", "--output", "work/scenarios"], 2)
+            scenario_hash = hashlib.sha256((root / "work/scenarios/scenario-manifest.json").read_bytes()).hexdigest()
+            refusal = run(["scripts/run_scenarios.py", "--output", "work/scenarios", "--human"], 2)
             assert "already exists" in refusal.stderr
+            assert "新目录" in refusal.stderr
+            assert hashlib.sha256((root / "work/scenarios/scenario-manifest.json").read_bytes()).hexdigest() == scenario_hash
             shutil.copytree(root / "work/scenarios", output / "scenarios", dirs_exist_ok=True)
         evidence = {"scope": "directory/process isolation; host still contains other repositories",
                     "archive_sha256": digest, "archive_files": names, "dependencies": "Python standard library only; venv without pip",

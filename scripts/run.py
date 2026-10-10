@@ -118,7 +118,10 @@ def main(argv=None):
     narrative.add_argument("--out-dir", required=True)
     test = sub.add_parser("self-test")
     test.add_argument("--out-dir", required=True)
+    for command_parser in sub.choices.values():
+        command_parser.add_argument("--human", action="store_true", help="在stderr显示中文提示，stdout仍为原JSON")
     args = parser.parse_args(argv)
+    teaching_mode = args.command == "demo" or getattr(args, "demo", False)
     if args.command == "template":
         out = Path(args.output)
         out.parent.mkdir(parents=True, exist_ok=True)
@@ -126,7 +129,9 @@ def main(argv=None):
             csv.writer(f).writerow(SCHEMAS[args.kind])
         result = {"template": str(out.resolve())}
     elif args.command == "narrative":
-        result = write_result(analyze(json.loads(Path(args.input).read_text(encoding="utf-8-sig"))), args.out_dir)
+        narrative_data = analyze(json.loads(Path(args.input).read_text(encoding="utf-8-sig")))
+        teaching_mode = narrative_data["simulation"]
+        result = write_result(narrative_data, args.out_dir)
     elif args.command == "self-test":
         from marketlens.selftest import run_tests
         result = run_tests(args.out_dir)
@@ -149,6 +154,18 @@ def main(argv=None):
         else:
             result = store.status(mode)
     print(json.dumps(result, ensure_ascii=False))
+    if args.human:
+        print("市场明镜 MarketLens｜本地CLI入口（Skill名称：marketlens）", file=sys.stderr)
+        if "report" in result:
+            print(f"已生成{'教学示例（非真实行情）' if teaching_mode else '本地资料分析报告（来源需核验）'}。"
+                  f"\n结果目录：{Path(result['report']).parent}\n打开Markdown：{result['report']}"
+                  f"\n审计JSON：{result['snapshot']}", file=sys.stderr)
+        elif args.command == "template":
+            print(f"已生成输入模板：{result['template']}；填写已核对的字段与单位，不把未知补零。", file=sys.stderr)
+        elif args.command == "self-test":
+            print(f"合成检查：通过{result['passed']}，失败{result['failed']}，错误{result['errors']}；不代表真实识别准确率。", file=sys.stderr)
+        else:
+            print("本地操作已完成，详情见stdout JSON；证据记录仍按审核状态处理。", file=sys.stderr)
     if args.command == "self-test" and (result["failed"] or result["errors"]):
         sys.exit(1)
 
@@ -158,4 +175,7 @@ if __name__ == "__main__":
         main()
     except (ValidationError, OSError, json.JSONDecodeError) as error:
         print(json.dumps({"error": str(error)}, ensure_ascii=False), file=sys.stderr)
+        if "--human" in sys.argv:
+            print("下一步：核对输入文件是否存在及读写权限；CSV列名用template生成，检查必填字段、人民币元/份额和含时区时间。"
+                  "JSON应为UTF-8；不要把缺失证据补成零或当前时间。未自动重试或安装。", file=sys.stderr)
         sys.exit(2)

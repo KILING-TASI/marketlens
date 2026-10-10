@@ -10,7 +10,7 @@ import subprocess
 import sys
 
 
-def run(output):
+def run(output, human=False):
     out = Path(output).resolve()
     if out.exists():
         raise FileExistsError("Scenario output already exists; choose a new directory")
@@ -218,13 +218,20 @@ def run(output):
         "\n".join(f"- {c['name']}：通过；{c['method']}" for c in cases) +
         "\n\n复用44项原有约束检查；详细输入、预期、实际、命令和方法版本见scenario-manifest.json。\n", encoding="utf-8")
     print(json.dumps({"passed_cases": len(cases), "reused_checks": checks["passed"], "output": str(out)}, ensure_ascii=False))
+    if human:
+        print(f"市场明镜 MarketLens｜教学情景已生成，非真实市场覆盖。\n结果目录：{out}"
+              f"\n打开Markdown：{out / 'scenario-index.md'}\n输入/预期/实际：{out / 'scenario-manifest.json'}", file=sys.stderr)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--output", required=True)
+    parser.add_argument("--human", action="store_true", help="中文提示走stderr，stdout保持JSON")
     try:
-        run(parser.parse_args().output)
+        args = parser.parse_args()
+        run(args.output, args.human)
     except FileExistsError as error:
         print(json.dumps({"error": str(error)}), file=sys.stderr)
+        if "--human" in sys.argv:
+            print("下一步：给--output换一个尚不存在的新目录名；旧结果保留，不提供强制覆盖。", file=sys.stderr)
         sys.exit(2)

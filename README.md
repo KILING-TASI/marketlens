@@ -20,7 +20,11 @@ Market Noise Detection and Evidence Analysis System（MNDEAS）
 
 ## 作为Skill使用
 
+仓库名与Skill名都为`marketlens`，`SKILL.md`的frontmatter `name: marketlens`，安装目录也必须为`marketlens/`；`agents/openai.yaml`和`references/`、`scripts/`为配套资源，README不是Skill入口。当前是待审源码，正式Release仍为v0.1.0；旧Release不含新增情景与人类提示选项，下面的新选项只适用于待审源码包。
+
 将本仓库的`SKILL.md`、`agents/`、`references/`、`scripts/`安装到Codex用户Skill目录中的`marketlens/`。常规Windows路径为用户目录下的`.codex/skills/marketlens`；自定义CODEX_HOME时使用其`skills/marketlens`。已有同名Skill时先比较版本和保留个人修改。
+
+保留包中的LICENSE和THIRD_PARTY_NOTICES.md。无需pip依赖、PDF解析extra或其他自家仓库；本仓没有PDF解析器，原文核验需人工处理。只运行本地CLI不要求安装为Skill或依赖研究工作台；自然语言入口需能发现Skill的Codex环境，CLI通过不证明发现或视觉已验收。本批不自动安装或覆盖已有Skill。
 
 也可以从[发布页](https://github.com/KILING-TASI/marketlens/releases)下载安装包，其顶层目录已经叫`marketlens`。在能够识别新Skill的对话中调用：
 
@@ -37,6 +41,15 @@ $marketlens 分析这段市场消息，区分事实、推断和缺失证据。
 ```
 
 ## 本地计算与试用
+
+Windows先确认`python --version`为3.10以上，在解压后的`marketlens`目录打开PowerShell。可复制最短人类用法：
+
+```powershell
+python scripts/run.py demo --db work/demo.sqlite3 --out-dir work/demo-results --human
+python scripts/run_scenarios.py --output work/scenarios-new --human
+```
+
+中文提示指出结果目录和要打开的Markdown，均为合成教学、离线标准库运行，无HTML界面。`--human`仅往stderr写提示；stdout仍为原JSON且返回键不变，机器调用可省略该选项。情景目录必须尚不存在，重跑换新目录名；已有冻结报告可用replay，不靠强制覆盖。缺输入时核对文件/字段/权限，不自动安装依赖或联网找替代数据。联网原页核验属于人工研究步骤，不是本地脚本的自动取数功能。
 
 在仓库根目录运行。数据和结果写工作目录，不写Skill安装目录：
 
