@@ -2,6 +2,18 @@
 
 看市场消息有哪些证据：指数上涨是否只是少数股票带动，ETF放量能否说明谁在买，回购公告到底兑现了多少。
 
+## 你可以用它解决什么
+
+**这消息可信吗？回购兑现了吗？指数涨，为什么多数股票没涨？**
+
+把公告计划、实际执行和样本观察分开；成交放量不能证明买方身份。
+
+先看[保存的结果示例](examples/teaching-report.html)，不需要安装 Python：图片可直接查看；HTML 请下载完整源码后用浏览器打开。示例按原记录标注教学或限定真实样本，不能换个名称就当作你的研究结果。重新计算才需要 Python。
+
+其他问题可看[九个工具如何选择](https://github.com/KILING-TASI/research-workbench/blob/main/references/tool-navigation.md)。各工具可独立使用，不必安装全部仓库。
+
+![教学报告截图](examples/teaching-report.jpg)
+
 [![原创代码 MIT](https://img.shields.io/badge/原创代码-MIT-blue)](LICENSE)
 
 ## 先看一份教学报告
@@ -12,9 +24,9 @@
 
 ## 安装和首次试用
 
-本轮对应[发布页](https://github.com/KILING-TASI/marketlens/releases/tag/v0.2.4)；下载时以实际上传的完整源码、wheel、sdist 与校验清单为准。源码按下面步骤安装；下载 wheel 后，将安装命令末尾的 `.` 换成该 wheel 文件路径。pip 安装不会自动注册 AI 工具中的 Skill。
+安装包见[发布页](https://github.com/KILING-TASI/marketlens/releases/tag/v0.2.4)；下载时以实际上传的完整源码、wheel、sdist 与校验清单为准。源码按下面步骤安装；下载 wheel 后，将安装命令末尾的 `.` 换成该 wheel 文件路径。pip 安装不会自动注册 AI 工具中的 Skill。
 
-本轮源码版本为 `0.2.4`。统一安装入口需要 Python 3.10 或以上。在完整源码目录新建自己的 Python 环境，下面的 Windows 命令不需要激活脚本：
+安装包版本为 `0.2.4`。统一安装入口需要 Python 3.10 或以上。在完整源码目录新建自己的 Python 环境，下面的 Windows 命令不需要激活脚本：
 
 ```powershell
 python -m venv .venv
@@ -23,7 +35,7 @@ python -m venv .venv
 .\.venv\Scripts\marketlens.exe demo --out-dir reports/demo --auto-name
 ```
 
-工具名与仓库名相同；在已激活的环境中可以直接输入工具名。Linux/macOS 使用 `.venv/bin/python` 和 `.venv/bin/marketlens`。教学结果写入当前工作目录；`--auto-name` 自动另选新名字，旧结果保留。不加该参数时，教学入口拒绝已有目录。`marketlens run --help` 查看原生参数，原来的命令继续兼容。其他专题可用 `marketlens script --help` 查看入口，以脚本名调用，不需要记住源码路径。pip 安装提供 CLI；作为 Skill 使用仍须保留完整源码及许可资源，不能只复制 SKILL.md。安装可能需要联网获取普通构建依赖；教学离线。下面保留原生入口及此前发行记录，本轮安装和版本以本节为准。
+工具名与仓库名相同；在已激活的环境中可以直接输入工具名。Linux/macOS 使用 `.venv/bin/python` 和 `.venv/bin/marketlens`。教学结果写入当前工作目录；`--auto-name` 自动另选新名字，旧结果保留。不加该参数时，教学入口拒绝已有目录。`marketlens run --help` 查看原生参数，原来的命令继续兼容。其他专题可用 `marketlens script --help` 查看入口，以脚本名调用，不需要记住源码路径。pip 安装提供 CLI；作为 Skill 使用仍须保留完整源码及许可资源，不能只复制 SKILL.md。安装可能需要联网获取普通构建依赖；教学离线。下面保留原生入口及此前发行记录，安装步骤和对应版本以本节为准。
 
 ## 最短试用
 
@@ -36,7 +48,7 @@ python --version
 python scripts/run.py demo --db work/demo.sqlite3 --out-dir work/demo-results --human
 ```
 
-提示会给出结果目录和要打开的 **Markdown 报告**，同目录另有 JSON 底稿。示例行情与交易日历均为合成数据。
+该原生入口输出 Markdown 报告和 JSON 底稿；上方 `Start-Demo.cmd` 或 `python try_demo.py` 会另生成便于浏览的 HTML 教学页。示例行情与交易日历均为合成数据。
 
 想看完整情景实例：
 
@@ -144,8 +156,8 @@ python scripts/run.py demo --db work/demo.sqlite3 --out-dir work/demo-results
 
 CSV导入当前以解码后的Python文本长度检查：单批最多8,000,000字符，含BOM的字符串在检查时也计入；这不是8 MiB文件字节限制，UTF-8中文可能占更多字节。超过时按完整数据行分批，每批保留完整表头、来源、证券身份、口径和可得时间。重复批次会识别，但不同来源或更正批次仍须自行核对；不按分批次序猜历史可得时间。
 
-该门槛不是数据库总容量、全市场覆盖或内存保证。SQLite导入和分析可能占用额外内存及磁盘；本轮未认证任意规模或任意机器的吞吐。不要从某次十万条测试外推全市场运行时间。
+该门槛不是数据库总容量、全市场覆盖或内存保证。SQLite导入和分析可能占用额外内存及磁盘；尚未认证任意规模或任意机器的吞吐。不要从某次十万条测试外推全市场运行时间。
 
-## 本轮验证范围
+## 验证范围
 
 源码教学启动、软件环境查询和安装后教学入口分别验证；软件就绪不等于真实资料已取得。中文问答需要助手按本仓Skill准备已声明输入，没有宣称任意自然语言自动发现或全市场数据闭环。旧报告、历史tag与案例证据保留。
