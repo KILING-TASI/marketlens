@@ -2,7 +2,7 @@
 
 核查市场消息、公告执行与样本观察，区分事实、推断和证据缺口。
 
-[![原创代码 MIT](https://img.shields.io/badge/原创代码-MIT-green)](LICENSE) · [当前发行版 v0.3.3](https://github.com/KILING-TASI/marketlens/releases/tag/v0.3.3) · [运行检查](https://github.com/KILING-TASI/marketlens/actions)
+[![原创代码 MIT](https://img.shields.io/badge/原创代码-MIT-green)](LICENSE) · [当前发行版 v0.3.4](https://github.com/KILING-TASI/marketlens/releases/tag/v0.3.4) · [运行检查](https://github.com/KILING-TASI/marketlens/actions)
 
 ## 能解决什么问题
 
@@ -12,7 +12,7 @@
 
 ## 快速开始
 
-从[发行页](https://github.com/KILING-TASI/marketlens/releases/tag/v0.3.3)下载完整源码并解压，需要 Python 3.10 或以上。在源码目录执行：
+从[发行页](https://github.com/KILING-TASI/marketlens/releases/tag/v0.3.4)下载完整源码并解压，需要 Python 3.10 或以上。在源码目录执行：
 
 ```text
 python try_demo.py --no-open --out-dir reports/first-demo
@@ -57,6 +57,6 @@ marketlens --help
 
 [按问题选择其他工具](https://github.com/KILING-TASI/research-workbench/blob/main/references/tool-navigation.md)。共12个活跃仓，资料契约校验已并入[数据仓](https://github.com/KILING-TASI/cn-data-adapters/blob/main/CONTRACT_MIGRATION.md)。各仓分别发布；main的后续文档整理不改写旧发行包和冻结结果。
 
-## v0.3.3 本轮补强
+## v0.3.4 本轮补强
 
 独立消息主张与证据对照，支持、反对、背景和局部支持分开；工作台通过薄接口调用。具体参数与边界见[使用说明](USAGE.md)。
