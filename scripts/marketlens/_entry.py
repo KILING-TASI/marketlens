@@ -86,6 +86,9 @@ def main(argv=None):
         if hasattr(stream, 'reconfigure'):
             stream.reconfigure(encoding='utf-8')
     args = list(sys.argv[1:] if argv is None else argv)
+    if args and args[0] == 'claims':
+        from .claim_evidence import main as claims_main
+        return claims_main(args[1:])
     if args and args[0] == "doctor":return doctor(args[1:])
     if not args or args in [['--help'], ['-h']]:
         print(REPO + '：独立研究工具。')

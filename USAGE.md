@@ -103,3 +103,13 @@ CSV导入当前以解码后的Python文本长度检查：单批最多8,000,000�
 
 
 本轮新增可引用市场证据摘要。独立入口、底稿与限制见 [EXPANSION.md](EXPANSION.md)。
+
+## 消息与证据逐条对照
+
+本仓可独立运行，无需工作台。
+
+```text
+python -m marketlens.claim_evidence review --input references/examples/claim-evidence-teaching.json --out-dir 新消息核对报告
+```
+
+主张与原文材料逐条关联，分开显示直接支持、反对、局部支持和背景。对象、期间、截止或数值角色不符的材料排除；同一摘要转载合并显示，不数票判真。关系与摘录由输入声明，当前不自动理解或认证原文含义，不输出真假概率。示例是原创教学资料。
