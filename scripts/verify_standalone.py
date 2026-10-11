@@ -171,6 +171,9 @@ def verify(output, archive=None):
         assert not deep['announcementMetrics'][1]['forecastComparison']['overlap']
         run(['scripts/run.py','sources','compare','--previous','work/source-review/result.json','--current','work/evidence-depth/result.json','--out-dir','work/source-diff'])
         assert json.loads((root/'work/source-diff/result.json').read_text(encoding='utf-8'))['methodVersion']=='source-review-diff/1'
+        run(['scripts/attack_ai_hallucination.py','--out-dir','work/ai-adversarial'])
+        audit=json.loads((root/'work/ai-adversarial/summary.json').read_text(encoding='utf-8'))
+        assert audit['cases']==30 and audit['expectationFailures']==[]
         evidence = {"scope": "directory/process isolation; host still contains other repositories",
                     "archive_sha256": digest, "archive_files": names, "dependencies": "Python standard library only; venv without pip",
                     "origins": origins, "commands": records, "notices": notices,

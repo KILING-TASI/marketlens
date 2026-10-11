@@ -87,6 +87,7 @@ def main(argv=None):
         if hasattr(stream, 'reconfigure'):
             stream.reconfigure(encoding='utf-8')
     args = list(sys.argv[1:] if argv is None else argv)
+    if args and args[0]=='audit-ai':return native(resources(),args[1:],selected='scripts/attack_ai_hallucination.py')
     if args and args[0] == 'sources':
         from .source_review import main as source_main
         return source_main(args[1:])
@@ -100,7 +101,8 @@ def main(argv=None):
     if args and args[0] == "doctor":return doctor(args[1:])
     if not args or args in [['--help'], ['-h']]:
         print(REPO + '：市场消息与证据分析。')
-        print('原文核对：sources scaffold / sources review；仅读取明确选定文件。')
+        print('原文核对：sources fetch / scaffold / review / compare；默认本地，显式联网选项见sources --help。')
+        print('原创攻击回归：audit-ai --out-dir 新目录；不联网，不代表所有漏洞已消除。')
         print('消息论证：arguments review；竞争解释：hypotheses review；旧证据关联：claims review。')
         print('教学试用：' + REPO + ' demo --out-dir reports/demo --auto-name')
         print('原生入口：' + REPO + ' run --help（原有参数与计算口径保留）')

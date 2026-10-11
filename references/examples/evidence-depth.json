@@ -70,7 +70,7 @@
     {
       "id": "p1",
       "sourceId": "s1",
-      "subject": "原创教学公司",
+      "subject": "教学子公司A",
       "metric": "归母净利润",
       "periodStart": "2026-01-01",
       "periodEnd": "2026-03-31",
@@ -83,12 +83,13 @@
       "value": null,
       "lower": -1000,
       "upper": 0,
-      "corrects": null
+      "corrects": null,
+      "evidenceExcerpt": "初次预告区间为-1000万元至0万元。"
     },
     {
       "id": "r1",
       "sourceId": "s1",
-      "subject": "原创教学公司",
+      "subject": "教学子公司A",
       "metric": "归母净利润",
       "periodStart": "2026-01-01",
       "periodEnd": "2026-03-31",
@@ -101,7 +102,8 @@
       "value": null,
       "lower": -5000,
       "upper": -4000,
-      "corrects": "p1"
+      "corrects": "p1",
+      "evidenceExcerpt": "后续更正区间为-5000万元至-4000万元。"
     }
   ],
   "asOf": "2026-10-11T23:00:00+08:00",

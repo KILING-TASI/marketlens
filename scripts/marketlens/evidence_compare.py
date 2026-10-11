@@ -8,9 +8,13 @@ def compare(previous,current):
             if not isinstance(result.get(kind),list) or any(not isinstance(r,dict) or not isinstance(r.get('id'),str) for r in result[kind]):raise ValueError('冻结结果资料或主张字段无效')
     old={r['id']:r for r in previous['sources']};new={r['id']:r for r in current['sources']}
     changes=[]
+    def stable(value):
+        if isinstance(value,dict):return {k:stable(v) for k,v in value.items() if k not in ('observedAt','checkedAt')}
+        if isinstance(value,list):return [stable(v) for v in value]
+        return value
     for sid in sorted(set(old)|set(new)):
         fields=['actualSha256','sourceRead','excerpt','excerptFound','urlCheck','timeCheck']
-        changed=fields if sid not in old or sid not in new else [f for f in fields if old[sid].get(f)!=new[sid].get(f)]
+        changed=fields if sid not in old or sid not in new else [f for f in fields if stable(old[sid].get(f))!=stable(new[sid].get(f))]
         if changed:changes.append(dict(sourceId=sid,change='added' if sid not in old else 'removed' if sid not in new else 'changed',fields=changed))
     changed_ids={r['sourceId'] for r in changes};old_claims={c['id']:c for c in previous['claims']};affected=[]
     for claim in current['claims']:

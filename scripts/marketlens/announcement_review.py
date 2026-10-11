@@ -2,6 +2,7 @@
 """Signed disclosure metrics are distinct from transaction cumulative cash."""
 from datetime import date
 from decimal import Decimal, InvalidOperation, localcontext
+import re
 
 UNITS={'元':Decimal(1),'万元':Decimal(10000),'亿元':Decimal(100000000)}
 def number(value):
@@ -17,16 +18,17 @@ def _review(items,source_ids):
     rows=[];previous={};ids=set()
     for item in items:
         required={'id','sourceId','subject','metric','periodStart','periodEnd','publishedAt','basis','auditStatus','unit','currency','disclosureType','value','lower','upper','corrects'}
-        if not isinstance(item,dict) or not required<=set(item) or set(item)-required-{'relatedVersionId','scopeChangeReason'}: raise ValueError('公告指标字段不完整或含未知字段；请按模板填写')
+        if not isinstance(item,dict) or not required<=set(item) or set(item)-required-{'relatedVersionId','scopeChangeReason','evidenceExcerpt'}: raise ValueError('公告指标字段不完整或含未知字段；请按模板填写')
         if not isinstance(item['id'],str) or not item['id'].strip() or item['id'] in ids: raise ValueError('公告指标ID须唯一')
         ids.add(item['id'])
         if not isinstance(item['sourceId'],str) or item['sourceId'] not in source_ids: raise ValueError('公告指标须关联已登记原文件')
         for field in ('subject','metric','basis','currency'):
             if not isinstance(item[field],str) or not item[field].strip(): raise ValueError('指标、主体、币种和报表口径须明确；无法确定时不做比较')
-        if item['unit'] not in UNITS: raise ValueError('支持元、万元、亿元；其他单位不自动换算')
+        if not isinstance(item['unit'],str) or item['unit'] not in UNITS: raise ValueError('支持元、万元、亿元；其他单位不自动换算')
         if item['auditStatus'] not in ('未知','未经审计','已审计','已预审'): raise ValueError('审计状态无效')
         if item['disclosureType'] not in ('预告','快报','年报','更正','重述','补充'): raise ValueError('公告类型无效')
         try:
+            if any(not isinstance(item[k],str) or not re.fullmatch(r'\d{4}-\d{2}-\d{2}',item[k]) for k in ('periodStart','periodEnd','publishedAt')):raise ValueError()
             start=date.fromisoformat(item['periodStart']);end=date.fromisoformat(item['periodEnd']);published=date.fromisoformat(item['publishedAt'])
         except (ValueError,TypeError): raise ValueError('公告日期与报告期须为YYYY-MM-DD')
         if start>end: raise ValueError('报告期开始不能晚于结束')

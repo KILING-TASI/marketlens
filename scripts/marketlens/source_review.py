@@ -112,6 +112,7 @@ def review(spec, base, verify_urls=False):
         linked=set()
         for link in links:
             if not isinstance(link,dict): raise ValueError('关联须为对象')
+            if set(link)!={'sourceId','relation','rationale'}:raise ValueError('关联仅接受sourceId、relation、rationale；不能伪填程序认证字段')
             if not isinstance(link.get('sourceId'),str) or link['sourceId'] not in ids or link['sourceId'] in linked: raise ValueError('关联资料不存在或重复')
             linked.add(link['sourceId'])
             if link.get('relation') not in ('supports','contradicts','partial','context'): raise ValueError('关联关系无效')
@@ -127,12 +128,33 @@ def review(spec, base, verify_urls=False):
         claim_rows[-1]['declaredJudgment']='按复核声明：'+'；'.join(opinions)+'。仅限所核对象与范围，不是整体真实性认证。' if opinions else '尚未登记逐项语义复核，不能由文件匹配确认整条消息。'
     from .announcement_review import review as announcements
     metrics=announcements(spec.get('announcementMetrics',[]),ids)
+    from decimal import Decimal,localcontext
+    import unicodedata
+    for metric in metrics:
+        quote=metric.get('evidenceExcerpt')
+        if quote is not None and (not isinstance(quote,str) or not quote.strip() or len(quote)>20000):raise ValueError('指标摘录须为非空文字，最多20000字符')
+        matched=bool(quote and any(quote in page for page in all_pages.get(metric['sourceId'],[])))
+        mentions=[]
+        if matched:
+            for match in re.finditer(r'(?<![A-Za-z0-9_.])(-?\d[\d,]*(?:\.\d+)?)\s*(亿元|万元|元|亿|万)',unicodedata.normalize('NFKC',quote)):
+                if len(match.group(1).replace(',',''))>100:continue
+                factor={'元':Decimal(1),'万':Decimal(10000),'万元':Decimal(10000),'亿':Decimal(100000000),'亿元':Decimal(100000000)}[match.group(2)]
+                with localcontext() as context:
+                    context.prec=220
+                    mentions.append(str(Decimal(match.group(1).replace(',',''))*factor))
+        checks={key:None if value is None or not mentions else any(Decimal(value)==Decimal(n) for n in mentions) for key,value in metric['normalized'].items()}
+        metric['sourceEvidenceCheck']=dict(excerpt=quote,excerptMatched=matched,numericMentionMatch=checks,scope='只比摘录中的显式数字与单位，不认证指标、主体、币种、审计状态或语义；亏损文字与括号等需另核')
+        if not matched:metric['warnings'].append('指标没有匹配的专属原文摘录，金额与口径仍为声明，比较仅按输入暂算')
+        elif not mentions:metric['warnings'].append('摘录未给出可识别的显式金额与单位，需核对指标原句')
+        elif any(value is False for value in checks.values()):metric['warnings'].append('声明数值未匹配专属摘录中的显式金额，先核对原单位、正负号和指标')
     human=[]
     for metric in metrics:
-        values=metric['normalized']; labels={'value':'披露值','lower':'区间下限','upper':'区间上限'}
+        values=metric['normalized']; labels={'value':'声明值','lower':'声明区间下限','upper':'声明区间上限'}
         from decimal import Decimal
         description='；'.join(labels[k]+'：'+('未知' if v is None else format(Decimal(v),',f')+'元（'+metric['currency']+'）') for k,v in values.items())
         human.append((metric['subject']+' · '+metric['metric']+' · '+metric['disclosureType'],description+'；原单位：'+metric['unit']+'；'+metric['auditStatus']+'；'+metric['basis']+'；'+metric['periodStart']+'至'+metric['periodEnd']))
+        human.append(('公告数值核查范围','以上金额、审计和口径来自输入声明；比较结果仅为按声明数值暂算，未认证原文指标对应关系。'))
+        if metric.get('evidenceExcerpt'):human.append(('指标专属原句',metric['evidenceExcerpt']+'；逐字匹配：'+('是' if metric['sourceEvidenceCheck']['excerptMatched'] else '否')+'；数字命中不等于指标认证'))
         for warning in metric['warnings']: human.append(('公告核对提示',warning))
         if 'versionDifference' in metric: human.append(('版本差额',metric['versionDifference']+'；'+metric['differenceMeaning']))
     for row in rows:
@@ -169,6 +191,7 @@ def review(spec, base, verify_urls=False):
         human.append((claim['text'],claim['status']+'；'+claim['reviewProgress']))
         for check in claim['aspectChecks']:
             human.append((claim['text']+' · '+ASPECTS[check['aspect']],check['expected']+'；原句：'+(check['excerpt'] or '未知')+'；复核意见：'+{'supports':'声明支持','contradicts':'声明反对','partial':'局部支持','unknown':'尚未确认'}[check['effectiveFinding']]+'；'+check['rationale']+'；'+check['reason']))
+            human.append(('逐项复核声明记录','声明者：'+str(check['reviewer'] or '未知')+'；声明时间：'+str(check['reviewedAt'] or '未知')+'；程序未认证身份或实际复核行为'))
             for hit in check['matchedContexts'][:3]:human.append(('逐项原句位置与上下文','来源：'+str(check['sourceId'])+'；提取页'+str(hit['page'])+'；偏移'+str(hit['offset'])+'；'+hit['before']+'【核对原句】'+hit['excerpt']+'【后文】'+hit['after']))
         for warning in claim['alerts']: human.append((claim['text']+' · 措辞核对',warning['question']))
         for link in claim.get('links',[]):
