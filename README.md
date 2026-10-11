@@ -1,157 +1,58 @@
 # 市场明镜 MarketLens
 
-看市场消息有哪些证据：指数上涨是否只是少数股票带动，ETF放量能否说明谁在买，回购公告到底兑现了多少。
+核查市场消息、公告执行与样本观察，区分事实、推断和证据缺口。
 
-## 你可以用它解决什么
+[![原创代码 MIT](https://img.shields.io/badge/原创代码-MIT-green)](LICENSE) · [当前发行版 v0.3.2](https://github.com/KILING-TASI/marketlens/releases/tag/v0.3.2) · [运行检查](https://github.com/KILING-TASI/marketlens/actions)
+
+## 能解决什么问题
 
 **这消息可信吗？回购兑现了吗？指数涨，为什么多数股票没涨？**
 
-把公告计划、实际执行和样本观察分开；成交放量不能证明买方身份。
+独立维护市场叙事与证据核查；工作台提供问题导航，导航不代表已经集成全部调用。
 
-先看[保存的结果示例](examples/teaching-report.html)，不需要安装 Python：图片可直接查看；HTML 请下载完整源码后用浏览器打开。示例按原记录标注教学或限定真实样本，不能换个名称就当作你的研究结果。重新计算才需要 Python。
+## 快速开始
 
-其他问题可看[按问题选择工具](https://github.com/KILING-TASI/research-workbench/blob/main/references/tool-navigation.md)。各工具可独立使用，不必安装全部仓库。
-
-![教学报告截图](examples/teaching-report.jpg)
-
-[![原创代码 MIT](https://img.shields.io/badge/原创代码-MIT-blue)](LICENSE)
-
-## 先看一份教学报告
-
-完整源码解压后，需要 Python 3.10+。Windows 可运行 `Start-Demo.cmd`；或在源码目录执行 `python try_demo.py`。Linux/macOS 用 `sh Start-Demo.sh`。不需要先执行 pip 安装，不自动下载数据或覆盖旧报告；缺 Python 会提示处理路径。
-
-换成自己的资料，先看[中文资料准备与错误处理](BEGINNER.md)。已安装 CLI 可运行 `marketlens doctor` 检查软件环境；它不检查资料或认证来源。
-
-## 名称与使用入口
-
-| 用途 | 名称 |
-|---|---|
-| 中文展示名称 | 市场明镜 MarketLens |
-| GitHub 仓库／Python 发行包 | `marketlens` |
-| Skill 注册名 | `marketlens` |
-| 安装后的命令 | `marketlens` |
-| Python 模块 | `marketlens` |
-
-中文名称用于介绍；安装、调用和已有记录沿用表中的技术标识。CLI 安装与 Skill 注册分别完成，使用 Skill 时保留完整仓库资源。
-
-## 安装和首次试用
-
-安装包见[发布页](https://github.com/KILING-TASI/marketlens/releases/tag/v0.3.2)，提供完整源码、wheel、sdist 和校验清单。源码按下面步骤安装；下载 wheel 后，将安装命令末尾的 `.` 换成该 wheel 文件路径。pip 安装不会自动注册 AI 工具中的 Skill。
-
-安装包版本为 `0.3.2`。统一安装入口需要 Python 3.10 或以上。在完整源码目录新建自己的 Python 环境，下面的 Windows 命令不需要激活脚本：
-
-```powershell
-python -m venv .venv
-.\.venv\Scripts\python.exe -m pip install .
-.\.venv\Scripts\marketlens.exe --help
-.\.venv\Scripts\marketlens.exe demo --out-dir reports/demo --auto-name
-```
-
-工具名与仓库名相同；在已激活的环境中可以直接输入工具名。Linux/macOS 使用 `.venv/bin/python` 和 `.venv/bin/marketlens`。教学结果写入当前工作目录；`--auto-name` 自动另选新名字，旧结果保留。不加该参数时，教学入口拒绝已有目录。`marketlens run --help` 查看原生参数，原来的命令继续兼容。其他专题可用 `marketlens script --help` 查看入口，以脚本名调用，不需要记住源码路径。pip 安装提供 CLI；作为 Skill 使用仍须保留完整源码及许可资源，不能只复制 SKILL.md。安装可能需要联网获取普通构建依赖；教学离线。原生入口与当前安装步骤见下文；历史版本说明见 CHANGELOG。
-
-
-## 导入真实数据前：先核对样本数量
-
-以下门槛按相同证券身份和可比口径分别计算，只使用研究截止时刻已可得的数据；“先前”不包含当前观察日，也不是自然日天数。
-
-| 想查看的结果 | 最少需要什么 |
-|---|---|
-| 成交倍数 | 当前行情加60条先前成交额；前60条中位数须大于零 |
-| 成交分位 | 当前行情加120条先前有效行情；历史最多取252条 |
-| 冲击分位 | 120个先前有效冲击值，排除当前冲击；每个历史值需要相邻可比价格及正成交额，全部有效时至少需122条行情 |
-| 主题成交占比的历史分位 | 当前占比加120条先前同主题、同市场范围的有效占比；历史最多取252条 |
-
-只导入30天行情时，历史分位保持“未知”是预期结果，不代表安装或联网失败。不同证券的记录不能合并凑数，也不要复制记录或降低门槛。当前占比、样本上涨比例等结果不受同一个120条门槛限制。报告中的输入诊断会列出实际有效数量和补充方向。
-
-计算日收益、当前冲击和单日ETF净申赎估值，还需核对真实交易日历、前一交易日和相应字段；行情条数足够不代表日历、企业行动或来源已核验。完整条件见[数据契约](references/data-contract.md#输入诊断与兼容说明)。统计分位是历史位置，不是涨跌概率。
-
-## 结果示例
-
-**样本多数下跌，但少数大权重股票使贡献代理为正。** 教学数据中，10只股票有3只上涨、7只下跌，中位收益为−0.2%；按期初权重手算的贡献代理为+1.52%。这是导入样本的观察，不能当作官方指数收益或全市场结论。
-
-**ETF放量、份额减少、融资活动增加，仍无法确认谁在买卖。** 另一组教学结果显示份额减少100万份，融资买入减偿还为10亿元；两者覆盖范围不同，也不能合并成某类投资者的资金流。
-
-这些实例通过上述情景入口实际生成报告。北向季度持仓、回购累计更正和主题业务进展的例子也在同一索引中，输入、预期与实际结果另存 JSON。
-
-## 能做什么，暂不支持什么
-
-| 可以做 | 使用时的边界 |
-|---|---|
-| 计算成交分位、样本上涨比例和权重贡献代理 | 限定导入样本；统计分位不是概率 |
-| 对照ETF份额、净值和融资活动 | 净申赎规模是估值，成交额不是净现金，不能识别账户 |
-| 核对回购计划、执行、累计进展与正式更正 | 原文与审核状态分开，未披露或未审核的部分保留未知 |
-| 检查季度持仓和主题业务说法 | 持仓不等于当天买入，技术进展不自动证明收入或利润 |
-| 按截止时间生成、冻结和回放中文报告 | 历史可得时间须有依据，晚披露不能倒填 |
-
-目前没有自动行情采集、完整全市场历史池、分钟IOPV、自动原文认证、收益预测或交易执行。也没有PDF解析器；业务、合同和原句含义需人工核对。需要实际研究时，使用自己已合法取得的资料；本地脚本不把输入上传第三方，也不启动后台服务。
-
-证券身份明确写成 `SSE:510300` 或 `SZSE:159919`；日频日历的 `market` 对应写 `SSE` 或 `SZSE`。`CN` 不是交易所别名，不能替代它们；不确定交易所时保留未知，不按代码猜测。字段、单位和缺口处理见[数据契约](references/data-contract.md)，开发范围见[能力说明](references/capabilities.md)。
-
-需要完整教学CSV与叙事JSON时，运行`python scripts/export_examples.py --output work/teaching-inputs-new`；新目录内有六类CSV、未核原文/已核教学两份JSON和中文说明。导入时使用独立数据库与`--demo`，具体步骤和每项计算的最低数据见[输入诊断说明](references/data-contract.md#输入诊断与兼容说明)。空模板仍只有表头；裸证券代码与不匹配日历会明确警告，不自动猜交易所。
-
-## 独立使用与 Skill 安装
-
-**可以直接运行本地CLI，也可以作为Codex Skill使用。** 两种入口都不依赖研究工作台或其他自家仓库；MarketLens负责市场叙事与证据检查，公司经营和综合判断不由这里包办。
-
-仓库名、Skill名称和安装目录均为 `marketlens`；[SKILL.md](SKILL.md)里的真实名称是 `name: marketlens`。安装 Skill 时复制完整源码目录或解压完整 Skill ZIP，保留说明、代码、参考及许可；不要按零散文件清单裁剪：
+从[发行页](https://github.com/KILING-TASI/marketlens/releases/tag/v0.3.2)下载完整源码并解压，需要 Python 3.10 或以上。在源码目录执行：
 
 ```text
-marketlens/
-  SKILL.md
-  agents/
-  references/
-  scripts/
-  README.md
-  docs/
-  LICENSE
-  THIRD_PARTY_NOTICES.md
+python try_demo.py --no-open --out-dir reports/first-demo
 ```
 
-Windows常规目录为 `%USERPROFILE%\.codex\skills\marketlens`；自定义 `CODEX_HOME` 时放在其 `skills\marketlens` 下。已有同名Skill时先保留个人修改、比较版本。可以从当前源码生成完整包：
+按提示打开新生成的 HTML。Windows 也可双击 `Start-Demo.cmd`，Linux/macOS 可用 `sh Start-Demo.sh`。教学使用原创模拟资料，不自动取真实数据；重复运行使用新目录，历史结果保留。
 
-```powershell
-python scripts/build_package.py --output work/marketlens-skill.zip
-```
+[查看已保存的报告示例](examples/teaching-report.html)。HTML请随完整源码下载后打开；示例按自身生成日期和口径阅读。
 
-包文件已存在时换新名字，打包器不会覆盖。安装后，在能识别该Skill的Codex对话中使用：
+![已保存的报告示例](examples/teaching-report.jpg)
+
+图片是历史示例，不能推定全部新报告已完成视觉验收。
+
+## 使用自己的资料
+
+先按[资料准备](BEGINNER.md)填写输入，再看[详细命令与方法](USAGE.md)。需要安装CLI时，在自己的Python环境运行：
 
 ```text
-$marketlens 核对这份回购公告：哪些只是计划，哪些已经执行？
-$marketlens 这段消息说ETF放量就是国家队买入，现有证据能支持吗？
+python -m pip install .
+marketlens --help
 ```
 
-本地CLI的计算、叙事检查与打包已验收；自然语言Skill发现和视觉效果没有纳入独立安装验收。
+仓库、Python发行包、安装命令及Skill注册名均为 `marketlens`。CLI安装和Skill注册是两个步骤：自然语言调用按[SKILL.md](SKILL.md)配置，保留完整资源；不必安装全部仓库。安装普通构建依赖可能联网，教学流程不需要作者缓存。
 
-## 更新已有安装
+## 结果范围
 
-下载当前发布包后重新安装；已安装的 Skill 需要单独更新完整资源。历史安装包说明见 [v0.2.0 构建记录](docs/release-v0.2.0.md)；旧报告按其原版本解释。
+公告计划不等于执行，成交放量不证明买方身份；限定样本不能外推全市场。
 
-## 验证、许可与来源
+报告中的来源、日期、假设和未知事项需一起阅读。程序运行成功不等于来源已经认证、资料完整或投资判断有效。原创代码采用MIT，第三方代码、公告、研报和数据仍按各自权利范围处理。
 
-- 验证：45项计算与证据约束检查、9类实际CLI报告情景，独立源码包在标准库虚拟环境中运行；CI覆盖Windows/Linux和Python 3.10/3.12。[验证范围与复现方法](docs/validation.md)
-- 来源：CN情景的官方规则版本、核验日期和适用条件见[官方口径说明](references/cn-scenarios.md)；主体、时点和原句的核查方法见[叙事与证据](references/narrative-evidence.md)。教学检查通过不代表真实识别准确率或收益。
-- 许可：有权许可的原创代码、Skill说明与合成示例采用[MIT](LICENSE)，版权主体KILING-TASI。公告、研报、数据和标识保留各自权利，详见[第三方与数据权利说明](THIRD_PARTY_NOTICES.md)。
+## 文档与维护
 
-## 叙事检查如何理解
+- [详细命令与方法](USAGE.md)
+- [资料准备与排错](BEGINNER.md)
+- [Skill调用指引](SKILL.md)
+- [版本记录](CHANGELOG.md)
+- [许可与第三方范围](THIRD_PARTY_NOTICES.md)
+- [审计范围](AUDIT_SCOPE.md)
+- [扩展专题](EXPANSION.md)
 
-“在证据范围内有支持”表示填写的结构化条件匹配，不表示程序读懂或核实了整句文字。当前不会自动验证摘要的语义。“收入同比下降”与“业绩暴雷”须拆为不同主张，定性判断仍需人工核对原文、比较基准和程度。JSON中 `verification_scope=structured_fields_only`、`semantic_verification=not_performed` 明示此范围；旧冻结结果不补写新字段。
+[贡献说明](CONTRIBUTING.md) · [安全反馈](SECURITY.md) · [更新与清理](LIFECYCLE.md) · [English](README.en.md)
 
-## 导入规模与运行限制
-
-CSV导入当前以解码后的Python文本长度检查：单批最多8,000,000字符，含BOM的字符串在检查时也计入；这不是8 MiB文件字节限制，UTF-8中文可能占更多字节。超过时按完整数据行分批，每批保留完整表头、来源、证券身份、口径和可得时间。重复批次会识别，但不同来源或更正批次仍须自行核对；不按分批次序猜历史可得时间。
-
-该门槛不是数据库总容量、全市场覆盖或内存保证。SQLite导入和分析可能占用额外内存及磁盘；尚未认证任意规模或任意机器的吞吐。不要从某次十万条测试外推全市场运行时间。
-
-## 验证范围
-
-源码教学启动、软件环境查询和安装后教学入口分别验证；软件就绪不等于真实资料已取得。中文问答需要助手按本仓Skill准备已声明输入，没有宣称任意自然语言自动发现或全市场数据闭环。旧报告、历史tag与案例证据保留。
-
-
-本轮新增可引用市场证据摘要。独立入口、底稿与限制见 [EXPANSION.md](EXPANSION.md)。
-
-
-## 参与、更新与清理
-
-[贡献说明](CONTRIBUTING.md) · [安全反馈](SECURITY.md) · [更新、缓存与卸载](LIFECYCLE.md)。
-
-[English introduction](README.en.md) · [版本变更](CHANGELOG.md)。
+[按问题选择其他工具](https://github.com/KILING-TASI/research-workbench/blob/main/references/tool-navigation.md)。共12个活跃仓，另有1个供旧记录复查的[历史契约仓](https://github.com/KILING-TASI/cn-research-contracts)。各仓分别发布；main的后续文档整理不改写旧发行包和冻结结果。

@@ -4,7 +4,7 @@ from shutil import copyfile
 from setuptools.command.build_py import build_py
 
 PACKAGE = 'marketlens'
-ROOTS = ['SHARED_CODE.json','tools', 'RIGHTS_INDEX.json', 'CONTRIBUTING.md', 'SECURITY.md', 'LIFECYCLE.md', 'README.en.md', 'CHANGELOG.md', 'AUDIT_SCOPE.md', 'EXPANSION.md', 'examples/expansion-teaching', 'BEGINNER.md', 'try_demo.py', 'Start-Demo.cmd', 'Start-Demo.sh', 'README.md', 'SKILL.md', 'LICENSE', 'THIRD_PARTY_NOTICES.md', 'agents', 'references', 'scripts', 'docs', 'examples/teaching-report.html', 'examples/teaching-report.jpg', 'examples/teaching-report-note.md']
+ROOTS = ['USAGE.md', 'SHARED_CODE.json','tools', 'RIGHTS_INDEX.json', 'CONTRIBUTING.md', 'SECURITY.md', 'LIFECYCLE.md', 'README.en.md', 'CHANGELOG.md', 'AUDIT_SCOPE.md', 'EXPANSION.md', 'examples/expansion-teaching', 'BEGINNER.md', 'try_demo.py', 'Start-Demo.cmd', 'Start-Demo.sh', 'README.md', 'SKILL.md', 'LICENSE', 'THIRD_PARTY_NOTICES.md', 'agents', 'references', 'scripts', 'docs', 'examples/teaching-report.html', 'examples/teaching-report.jpg', 'examples/teaching-report-note.md']
 EXCLUDED = []
 EXTENSIONS = {'.cmd', '.sh', '.py','.js','.cjs','.mjs','.md','.json','.txt','.csv','.html','.css','.yaml','.yml','.jpg','.png','.svg'}
 
