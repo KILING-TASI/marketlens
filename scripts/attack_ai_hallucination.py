@@ -33,7 +33,7 @@ add('future-search-completed',lambda s:s['searchLog'][0].update(checkedAt='2099-
 add('search-before-source',lambda s:s['searchLog'][0].update(status='found',sourceIds=['s1'],checkedAt='2025-01-01T00:00:00+08:00'),lambda r:r['searchLog'][0]['status'])
 add('basic-date-format',lambda s:s['announcementMetrics'][0].update(periodStart='20260101'),lambda r:r['announcementMetrics'][0]['periodStart'])
 add('amount-not-in-original',lambda s:s['announcementMetrics'][0].update(value='999999999',evidenceExcerpt='拟向客户甲供货'),lambda r:r['announcementMetrics'][0])
-add('false-negative-interval',lambda s:s['announcementMetrics'][0].update(lower=1000,upper=2000),lambda r:r['announcementMetrics'][0]['normalized'])
+add('false-negative-interval',lambda s:s['announcementMetrics'][0].update(lower=1000,upper=2000),lambda r:r['announcementMetrics'][0])
 add('point-range-conflict',lambda s:s['announcementMetrics'][0].update(value=999999),lambda r:r['announcementMetrics'][0]['warnings'])
 add('cross-currency-correction',lambda s:s['announcementMetrics'][1].update(currency='USD'),lambda r:r['announcementMetrics'][1])
 add('malformed-unit',lambda s:s['announcementMetrics'][0].update(unit=[]),lambda r:r['announcementMetrics'][0])
@@ -58,6 +58,8 @@ failures=[]
 for record in records:
  if record['name'] in critical_unknown and record.get('outcome')!='unknown': failures.append(record['name'])
  if record['name'] in critical_reject and (record.get('accepted') or record.get('errorType')!='ValueError'):failures.append(record['name'])
+ if record['name']=='false-negative-interval' and record.get('outcome',{}).get('sourceEvidenceCheck',{}).get('numericMentionMatch',{}).get('lower') is not False:failures.append(record['name']+'-missing-number-warning')
+ if record['name']=='amount-not-in-original' and not record.get('outcome',{}).get('warnings'):failures.append(record['name']+'-missing-warning')
  if record.get('publisherAuthenticated'):failures.append(record['name']+'-false-certification')
 summary=dict(cases=len(records),expectationFailures=failures,scope='原创样本回归；accepted只指输入被处理，不代表真实性，不能宣称所有幻觉已消除')
 (out/'summary.json').write_text(json.dumps(summary,ensure_ascii=False,indent=2),encoding='utf-8')
