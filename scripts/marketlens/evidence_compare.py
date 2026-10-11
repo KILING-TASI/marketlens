@@ -6,6 +6,14 @@ def compare(previous,current):
         if result.get('methodVersion') not in ('source-review/1','source-review/2'):raise ValueError('只比较市场明镜原文核对结果')
         for kind in ('sources','claims'):
             if not isinstance(result.get(kind),list) or any(not isinstance(r,dict) or not isinstance(r.get('id'),str) for r in result[kind]):raise ValueError('冻结结果资料或主张字段无效')
+            ids=[r['id'] for r in result[kind]]
+            if any(not sid.strip() for sid in ids) or len(set(ids))!=len(ids):raise ValueError('冻结结果ID须非空且唯一，不能覆盖同名记录')
+        source_ids={r['id'] for r in result['sources']}
+        for claim in result['claims']:
+            if not isinstance(claim.get('text'),str):raise ValueError('冻结主张文字无效')
+            for kind in ('links','checks','aspectChecks'):
+                refs=claim.get(kind,[])
+                if not isinstance(refs,list) or any(not isinstance(r,dict) or (r.get('sourceId') is not None and (not isinstance(r['sourceId'],str) or r['sourceId'] not in source_ids)) for r in refs):raise ValueError('冻结主张引用不存在或字段无效')
     old={r['id']:r for r in previous['sources']};new={r['id']:r for r in current['sources']}
     changes=[]
     def stable(value):
@@ -13,13 +21,15 @@ def compare(previous,current):
         if isinstance(value,list):return [stable(v) for v in value]
         return value
     for sid in sorted(set(old)|set(new)):
-        fields=['actualSha256','sourceRead','excerpt','excerptFound','urlCheck','timeCheck']
+        fields=['actualSha256','sourceRead','excerpt','excerptFound','urlCheck','timeCheck','expectedSha256','hashMatch','page','locatorVerified','sourceUrl','publishedAt','title','sourceVersion','subjectId','sourceType','registeredAttachments','extractionCoverage']
         changed=fields if sid not in old or sid not in new else [f for f in fields if stable(old[sid].get(f))!=stable(new[sid].get(f))]
         if changed:changes.append(dict(sourceId=sid,change='added' if sid not in old else 'removed' if sid not in new else 'changed',fields=changed))
     changed_ids={r['sourceId'] for r in changes};old_claims={c['id']:c for c in previous['claims']};affected=[]
     for claim in current['claims']:
-        linked={x['sourceId'] for x in claim.get('links',[])}|{x['sourceId'] for x in claim.get('checks',[]) if x['sourceId'] is not None}
+        linked={x.get('sourceId') for kind in ('links','checks','aspectChecks') for x in claim.get(kind,[]) if x.get('sourceId') is not None}
         if linked & changed_ids or old_claims.get(claim['id'])!=claim:affected.append(dict(id=claim['id'],text=claim['text'],sources=sorted(linked & changed_ids),reason='资料或核对记录变化，需重新复核；不自动改历史结论'))
     removed=[dict(id=c['id'],text=c['text'],reason='本轮已移除该主张；旧记录保留') for c in previous['claims'] if c['id'] not in {x['id'] for x in current['claims']}]
-    rows=[(c['sourceId'],c['change']+'；变化字段：'+','.join(c['fields'])) for c in changes]+[(c['text'],c['reason']) for c in affected+removed]
-    return dict(methodVersion='source-review-diff/1',conclusion='对比冻结结果：'+str(len(changes))+'项资料变化，'+str(len(affected))+'条当前主张需复查；不重算或覆盖历史。',sourceChanges=changes,affectedClaims=affected,removedClaims=removed,humanRows=rows,limitations=['按ID与字段比较，身份映射由输入者保留；ID变化不证明不同对象。','只指出变更影响范围，不自动判定哪个版本真实或有效。'])
+    context_fields=['announcementMetrics','sourceRelations','searchLog','researchPlan']
+    context_changes=[f for f in context_fields if previous.get(f)!=current.get(f)]
+    rows=[(c['sourceId'],c['change']+'；变化字段：'+','.join(c['fields'])) for c in changes]+[(c['text'],c['reason']) for c in affected+removed]+[(f,'研究记录变化，需复查对应口径与结论范围') for f in context_changes]
+    return dict(methodVersion='source-review-diff/1',conclusion='对比冻结结果：'+str(len(changes))+'项资料变化，'+str(len(affected))+'条当前主张需复查，'+str(len(context_changes))+'项研究记录变化；不重算或覆盖历史。',sourceChanges=changes,affectedClaims=affected,removedClaims=removed,contextChanges=context_changes,humanRows=rows,limitations=['按ID与字段比较，身份映射由输入者保留；ID变化不证明不同对象。','研究记录变化提示整体复查，不推断尚未登记的指标与主张关联。','只指出变更影响范围，不自动判定哪个版本真实或有效。'])

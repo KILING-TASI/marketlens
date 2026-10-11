@@ -105,7 +105,7 @@ def main(argv=None):
         from marketlens._entry import main as professional_entry
         return professional_entry(routed)
 
-    parser = argparse.ArgumentParser(description="市场明镜：本地数据计算与证据检查", epilog="更多入口：sources scaffold / sources review；arguments review；hypotheses review；claims review。")
+    parser = argparse.ArgumentParser(description="市场明镜：本地数据计算与证据检查", epilog="更多入口：sources fetch / sources scaffold / sources review / sources compare；arguments review；hypotheses review；claims review。")
     sub = parser.add_subparsers(dest="command", required=True)
     template = sub.add_parser("template")
     kind_help = "market行情；fund基金份额/净值；financing融资买入/偿还/余额（不含完整两融或融券）；breadth成分收益/权重；sector主题成交与分母；calendar市场交易日历"

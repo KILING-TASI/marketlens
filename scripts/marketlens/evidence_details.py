@@ -135,6 +135,7 @@ def aspects(claim,rows,pages):
             expected=check['expected'].replace('已经','已');quote=check['excerpt'] or ''
             for action in ('交付','实施','完成','签约'):
                 if '已'+action in expected and ('未'+action in quote or '尚未'+action in quote):risks.append('声明支持与原句未'+action+'措辞疑似矛盾')
+                if '已'+action in expected and any(marker+action in quote for marker in ('拟','计划','预计','有望','可能','或将')):risks.append('计划或可能'+action+'不能直接认定已'+action+'；若原句同时含后续执行，需拆开核对')
             if any(w in expected for w in ('全部','所有')) and '否认' in quote and any(w in quote for w in ('其他','部分','仅')):risks.append('局部否认不能直接推广为全部对象')
             if check['aspect'] in ('identity','subject') and check['expected'] not in quote:risks.append('身份名称未在所引原句直接对应；别名或母子公司关系需另附依据')
         if risks:usable=False
