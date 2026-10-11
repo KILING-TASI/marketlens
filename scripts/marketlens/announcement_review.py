@@ -17,9 +17,9 @@ def review(items,source_ids):
     for item in items:
         required={'id','sourceId','subject','metric','periodStart','periodEnd','publishedAt','basis','auditStatus','unit','currency','disclosureType','value','lower','upper','corrects'}
         if not isinstance(item,dict) or set(item)!=required: raise ValueError('公告指标字段不完整或含未知字段；请按模板填写')
-        if item['id'] in ids or not isinstance(item['id'],str) or not item['id'].strip(): raise ValueError('公告指标ID须唯一')
+        if not isinstance(item['id'],str) or not item['id'].strip() or item['id'] in ids: raise ValueError('公告指标ID须唯一')
         ids.add(item['id'])
-        if item['sourceId'] not in source_ids: raise ValueError('公告指标须关联已登记原文件')
+        if not isinstance(item['sourceId'],str) or item['sourceId'] not in source_ids: raise ValueError('公告指标须关联已登记原文件')
         for field in ('subject','metric','basis','currency'):
             if not isinstance(item[field],str) or not item[field].strip(): raise ValueError('指标、主体、币种和报表口径须明确；无法确定时不做比较')
         if item['unit'] not in UNITS: raise ValueError('支持元、万元、亿元；其他单位不自动换算')

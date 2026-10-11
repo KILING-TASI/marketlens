@@ -100,7 +100,7 @@ def review(spec, base):
         linked=set()
         for link in links:
             if not isinstance(link,dict): raise ValueError('关联须为对象')
-            if link.get('sourceId') not in ids or link['sourceId'] in linked: raise ValueError('关联资料不存在或重复')
+            if not isinstance(link.get('sourceId'),str) or link['sourceId'] not in ids or link['sourceId'] in linked: raise ValueError('关联资料不存在或重复')
             linked.add(link['sourceId'])
             if link.get('relation') not in ('supports','contradicts','partial','context'): raise ValueError('关联关系无效')
             if not isinstance(link.get('rationale'),str) or not link['rationale'].strip(): raise ValueError('须填写关联理由')
