@@ -1,3 +1,10 @@
+Start-Demo.sh text eol=lf
+
+Start-Demo.cmd text eol=crlf
+
+# Preserve CRLF bytes in git clones and automatic source archives.
+Start-Demo.cmd -text eol=crlf whitespace=cr-at-eol
+
 # Teaching digests bind exact distributed bytes on every platform.
 references/examples/source-teaching.md text eol=lf
 references/examples/depth-original.md text eol=lf
