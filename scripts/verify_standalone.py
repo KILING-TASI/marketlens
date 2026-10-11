@@ -149,6 +149,14 @@ def verify(output, archive=None):
                 assert "教学" in narrative.stderr
             shutil.copytree(root / "work/diagnostics", output / "diagnostics", dirs_exist_ok=True)
             shutil.copytree(root / "work/examples", output / "examples", dirs_exist_ok=True)
+        for action,example,method in [('arguments','argument-teaching.json','claim-evidence/2'),('hypotheses','hypotheses-teaching.json','competing-hypotheses/1')]:
+            destination='work/new-'+action
+            run(['scripts/run.py',action,'review','--input','references/examples/'+example,'--out-dir',destination])
+            payload=json.loads((root/destination/'result.json').read_text(encoding='utf-8'))
+            assert payload['methodVersion']==method
+            before=hashlib.sha256((root/destination/'result.json').read_bytes()).hexdigest()
+            run(['scripts/run.py',action,'review','--input','references/examples/'+example,'--out-dir',destination],2)
+            assert hashlib.sha256((root/destination/'result.json').read_bytes()).hexdigest()==before
         evidence = {"scope": "directory/process isolation; host still contains other repositories",
                     "archive_sha256": digest, "archive_files": names, "dependencies": "Python standard library only; venv without pip",
                     "origins": origins, "commands": records, "notices": notices,

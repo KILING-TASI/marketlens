@@ -17,7 +17,7 @@ def build(output):
     for directory in ["agents", "references", "scripts", "docs", "tools"]:
         files.extend(p for p in (root / directory).rglob("*")
                      if p.is_file() and "__pycache__" not in p.parts
-                     and p.suffix.lower() in {".py", ".md", ".yaml", ".yml"})
+                     and p.suffix.lower() in {".py", ".md", ".yaml", ".yml", ".json", ".html"})
     files.extend((root / "examples/expansion-teaching").glob("*.json"))
     output = Path(output).resolve()
     output.parent.mkdir(parents=True, exist_ok=True)
@@ -30,6 +30,7 @@ def build(output):
         if archive.testzip() is not None:
             raise ValueError("Archive integrity check failed")
         assert all("marketlens/" + name in archive.namelist() for name in mandatory)
+        assert all("marketlens/" + name in archive.namelist() for name in ["references/theory-sources.json", "references/examples/argument-teaching.json", "references/examples/hypotheses-teaching.json", "references/examples/argument-preview/report.html"])
     return output
 
 

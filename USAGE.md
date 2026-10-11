@@ -125,3 +125,5 @@ marketlens hypotheses review --input references/examples/hypotheses-teaching.jso
 两项都可独立安装运行，仅使用标准库及已声明资料；教学网址和摘录为原创模拟资料，不能当真实消息。旧`claims review`继续接收claim-evidence/1，并可按新schema路由v2。字段准备见[论证结构](references/argument-structure.md)，矩阵和范围见[竞争解释](references/competing-hypotheses.md)。
 
 新报告先显示限定结论和六类证据状态，再看论证限定、待复核建议及完整底稿。数量不是可信度，理论IDs只绑定[书目目录](references/theory-sources.md)，不改变状态。旧结果不覆盖；未复核或截止后关联不纳入判断。政策、担保与制度变更按[国内核对问题](references/cn-institution-checks.md)准备原文、适用条件和未知，不让理论替代规则。
+
+若只安装完整Skill源码、不装命令行包，可直接运行 `python scripts/run.py arguments review --input references/examples/argument-teaching.json --out-dir 新目录`；竞争解释将arguments换成hypotheses。两条源码路径也已纳入无pip的隔离验收。

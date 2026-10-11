@@ -95,6 +95,11 @@ def write_result(data, out):
 
 
 def main(argv=None):
+    routed=list(sys.argv[1:] if argv is None else argv)
+    if routed and routed[0] in ('arguments','hypotheses','claims'):
+        from marketlens._entry import main as professional_entry
+        return professional_entry(routed)
+
     parser = argparse.ArgumentParser(description="市场明镜：本地数据计算与证据检查")
     sub = parser.add_subparsers(dest="command", required=True)
     template = sub.add_parser("template")
@@ -183,7 +188,7 @@ def main(argv=None):
 
 if __name__ == "__main__":
     try:
-        main()
+        raise SystemExit(main())
     except (ValidationError, OSError, json.JSONDecodeError) as error:
         print(json.dumps({"error": str(error)}, ensure_ascii=False), file=sys.stderr)
         if "--human" in sys.argv:
