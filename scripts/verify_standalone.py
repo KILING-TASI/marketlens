@@ -174,6 +174,12 @@ def verify(output, archive=None):
         run(['scripts/attack_ai_hallucination.py','--out-dir','work/ai-adversarial'])
         audit=json.loads((root/'work/ai-adversarial/summary.json').read_text(encoding='utf-8'))
         assert audit['cases']==30 and audit['expectationFailures']==[]
+        run(['scripts/run.py','sources','review','--input','references/examples/evidence-expansion.json','--out-dir','work/evidence-expansion'])
+        expanded=json.loads((root/'work/evidence-expansion/result.json').read_text(encoding='utf-8'))
+        assert expanded['claims'][0]['aspectChecks'][0]['effectiveFinding']=='unknown'
+        assert expanded['sources'][0]['attachmentCoverage']['missing']==['repurchase-plan']
+        assert expanded['announcementMetrics'][0]['sourceEvidenceCheck']['matchedContexts'][0]['page']==1
+        assert expanded['metricBindings'][0]['claimId']=='profit'
         evidence = {"scope": "directory/process isolation; host still contains other repositories",
                     "archive_sha256": digest, "archive_files": names, "dependencies": "Python standard library only; venv without pip",
                     "origins": origins, "commands": records, "notices": notices,

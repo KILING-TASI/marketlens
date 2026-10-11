@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "marketlens"
-version = "0.5.1"
+version = "0.5.2"
 description = "市场消息与证据分析：支持范围、竞争解释与可复查的论证结构"
 readme = "README.md"
 requires-python = ">=3.10"

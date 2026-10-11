@@ -60,7 +60,7 @@ def enrich_source(row,pages,base,verify_urls=False,cutoff=None):
             try:
                 body,receipt=fetch(address);digest=hashlib.sha256(body).hexdigest()
                 row['urlCheck'].update(status='visited',bytesMatch=digest==row['actualSha256'],downloadSha256=digest,receipt=receipt,checkedAt=datetime.now(timezone.utc).isoformat(),reason='实际下载字节与本地文件比较；不同可能由版本、动态内容或错误文件造成，不自动判伪造')
-            except (OSError,ValueError) as error:row['urlCheck'].update(status='unavailable',reason=str(error))
+            except (OSError,ValueError) as error:row['urlCheck'].update(status='unavailable',reason=str(error),failure=getattr(error,'details',dict(code='network-or-address-error',retried=False)))
     published=row.get('publishedAt')
     try:
         if published is None:row['timeCheck']=dict(precision='unknown',intradayKnown=False,reason='首次披露时间未知；取得日期不替代发布时间',availableAtCutoff=None)
@@ -125,6 +125,7 @@ def aspects(claim,rows,pages):
         if source and source.get('timeCheck',{}).get('cutoffRequested') and source['timeCheck']['availableAtCutoff'] is not True:usable=False
         if source and source.get('timeCheck',{}).get('cutoff') and check['reviewedAt'] is not None and instant(check['reviewedAt'])>instant(source['timeCheck']['cutoff']):usable=False
         risks=[]
+        if source and source.get('attachmentCoverage',{}).get('missing'):risks.append('声明必需附件缺失或未读取，相关意见需等待补齐')
         if check['reviewedAt'] is not None:
             reviewed=instant(check['reviewedAt'])
             if reviewed>datetime.now(timezone.utc):risks.append('复核时间在未来，不能称已完成')
@@ -136,6 +137,10 @@ def aspects(claim,rows,pages):
             for action in ('交付','实施','完成','签约'):
                 if '已'+action in expected and ('未'+action in quote or '尚未'+action in quote):risks.append('声明支持与原句未'+action+'措辞疑似矛盾')
                 if '已'+action in expected and any(marker+action in quote for marker in ('拟','计划','预计','有望','可能','或将')):risks.append('计划或可能'+action+'不能直接认定已'+action+'；若原句同时含后续执行，需拆开核对')
+                if '已'+action in expected and any(marker+action in quote for marker in ('不曾','并未','没有','并没有','暂未','未能')):risks.append('否定'+action+'不能直接作为已执行支持')
+            surrounding=' '.join(hit['before']+hit['excerpt']+hit['after'] for hit in locations)
+            if re.search(r'尚未|并未|未能|不曾|不属实|不代表|不意味着|不得据此|仅为意向|尚需|仍需',surrounding):risks.append('原句周边存在否定或前提条件，需拆句核对范围后再登记支持')
+            if re.search(r'其(?!他|中|余|实)|该公司|上述主体|前者|后者|本公司|该事项|上述事项',quote):risks.append('原句含指代，需另附明确主体或事项映射；不自动推断指代对象')
             if any(w in expected for w in ('全部','所有')) and '否认' in quote and any(w in quote for w in ('其他','部分','仅')):risks.append('局部否认不能直接推广为全部对象')
             if check['aspect'] in ('identity','subject') and check['expected'] not in quote:risks.append('身份名称未在所引原句直接对应；别名或母子公司关系需另附依据')
         if risks:usable=False

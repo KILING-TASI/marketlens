@@ -2,7 +2,7 @@
 
 核对市场消息的依据、推断和证据缺口，说明哪些判断有支持、适用到哪里，以及什么新资料会改变判断。
 
-[![原创代码 MIT](https://img.shields.io/badge/原创代码-MIT-green)](LICENSE) · [当前发行版 v0.5.1](https://github.com/KILING-TASI/marketlens/releases/tag/v0.5.1) · [运行检查](https://github.com/KILING-TASI/marketlens/actions)
+[![原创代码 MIT](https://img.shields.io/badge/原创代码-MIT-green)](LICENSE) · [当前发行版 v0.5.2](https://github.com/KILING-TASI/marketlens/releases/tag/v0.5.2) · [运行检查](https://github.com/KILING-TASI/marketlens/actions)
 
 ## 能解决什么问题
 
@@ -16,7 +16,7 @@
 
 ## 快速开始
 
-从[发行页](https://github.com/KILING-TASI/marketlens/releases/tag/v0.5.1)下载完整源码并解压，需要 Python 3.10 或以上。在源码目录执行：
+从[发行页](https://github.com/KILING-TASI/marketlens/releases/tag/v0.5.2)下载完整源码并解压，需要 Python 3.10 或以上。在源码目录执行：
 
 ```text
 python try_demo.py --no-open --out-dir reports/first-demo
@@ -90,3 +90,11 @@ marketlens --help
 | 新资料影响哪些判断 | `sources compare`，保留冻结报告 |
 
 见[深入核对说明](references/evidence-depth.md)与[完整原创案例](references/examples/evidence-depth.json)。
+
+## v0.5.2 限定条件与变化影响
+
+补齐必需附件清单、指标与主张关联、指标原句页码及上下文。跨句否定和指代提示待核；限流与超时保留故障原因，不自动重试。见[完整说明](references/evidence-expansion.md)与[原创教学输入](references/examples/evidence-expansion.json)。
+
+```sh
+python scripts/run.py sources review --input references/examples/evidence-expansion.json --out-dir 新目录
+```

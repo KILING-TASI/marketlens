@@ -57,7 +57,7 @@ def alerts(text):
 
 def review(spec, base, verify_urls=False):
     if not isinstance(spec, dict) or spec.get('inputSchema') not in ('source-review/1','source-review/2'): raise ValueError('须为source-review/1或source-review/2')
-    if set(spec)-{'inputSchema','sources','claims','announcementMetrics','sourceRelations','searchLog','researchPlan','asOf'}: raise ValueError('原文核对输入含未知字段')
+    if set(spec)-{'inputSchema','sources','claims','announcementMetrics','sourceRelations','searchLog','researchPlan','asOf','metricBindings'}: raise ValueError('原文核对输入含未知字段')
     from .review_io import instant
     cutoff=instant(spec['asOf']) if spec.get('asOf') is not None else None
     sources = spec.get('sources'); claims = spec.get('claims')
@@ -67,7 +67,7 @@ def review(spec, base, verify_urls=False):
     if verify_urls and len(sources)>10:raise ValueError('一次显式联网核对最多10项来源，其他资料可分批核对')
     for source in sources:
         if not isinstance(source,dict): raise ValueError('资料须为对象')
-        if set(source)-{'id','file','expectedSha256','sourceUrl','publishedAt','page','excerpt','title','sourceVersion','subjectId','sourceType'}:raise ValueError('来源输入含未知字段；不能填写程序生成的核查结果')
+        if set(source)-{'id','file','expectedSha256','sourceUrl','publishedAt','page','excerpt','title','sourceVersion','subjectId','sourceType','requiredAttachments'}:raise ValueError('来源输入含未知字段；不能填写程序生成的核查结果')
         sid=source.get('id')
         if not isinstance(sid,str) or not sid.strip() or sid in ids: raise ValueError('资料ID须非空且唯一')
         ids.add(sid)
@@ -101,6 +101,10 @@ def review(spec, base, verify_urls=False):
     relations,searches=links_and_search(spec,rows)
     for row in rows:
         row['registeredAttachments']=[rel['from'] for rel in relations if rel['type']=='attachment' and rel['to']==row['id']]
+        required=row.get('requiredAttachments',[])
+        if not isinstance(required,list) or len(required)>100 or any(not isinstance(s,str) or not s.strip() or s==row['id'] for s in required) or len(set(required))!=len(required):raise ValueError('必需附件须为至多100个不重复的其他资料ID；未取得的ID可保留')
+        available=[sid for sid in required if sid in row['registeredAttachments'] and any(r['id']==sid and r['sourceRead'] and r.get('hashMatch') is not False and any(p.strip() for p in all_pages.get(sid,[])) for r in rows)]
+        row['attachmentCoverage']=dict(required=required,available=available,missing=[sid for sid in required if sid not in available],scope='仅核声明必需附件的登记、读取和摘要；不认证附件完整性或表格布局')
     claim_rows=[]; seen=set()
     for claim in claims:
         if not isinstance(claim,dict): raise ValueError('主张须为对象')
@@ -128,12 +132,25 @@ def review(spec, base, verify_urls=False):
         claim_rows[-1]['declaredJudgment']='按复核声明：'+'；'.join(opinions)+'。仅限所核对象与范围，不是整体真实性认证。' if opinions else '尚未登记逐项语义复核，不能由文件匹配确认整条消息。'
     from .announcement_review import review as announcements
     metrics=announcements(spec.get('announcementMetrics',[]),ids)
+    bindings=spec.get('metricBindings',[])
+    if not isinstance(bindings,list) or len(bindings)>500:raise ValueError('指标关联最多500项')
+    pairs=set();metric_ids={m['id'] for m in metrics}
+    for binding in bindings:
+        if not isinstance(binding,dict) or set(binding)!={'claimId','metricId','rationale'}:raise ValueError('指标关联须明确claimId、metricId和rationale')
+        if not isinstance(binding['claimId'],str) or binding['claimId'] not in seen or not isinstance(binding['metricId'],str) or binding['metricId'] not in metric_ids:raise ValueError('指标关联引用的主张或指标不存在')
+        pair=(binding['claimId'],binding['metricId'])
+        if pair in pairs or not isinstance(binding['rationale'],str) or not binding['rationale'].strip():raise ValueError('指标关联不得重复，且须给出依据')
+        pairs.add(pair)
     from decimal import Decimal,localcontext
     import unicodedata
     for metric in metrics:
         quote=metric.get('evidenceExcerpt')
         if quote is not None and (not isinstance(quote,str) or not quote.strip() or len(quote)>20000):raise ValueError('指标摘录须为非空文字，最多20000字符')
-        matched=bool(quote and any(quote in page for page in all_pages.get(metric['sourceId'],[])))
+        from .evidence_details import context as quote_context
+        source_row=next(r for r in rows if r['id']==metric['sourceId'])
+        evidence_page=metric.get('evidencePage',source_row.get('page'))
+        locations=quote_context(all_pages.get(metric['sourceId'],[]),quote,evidence_page)
+        matched=bool(locations)
         mentions=[]
         if matched:
             for match in re.finditer(r'(?<![A-Za-z0-9_.])(-?\d[\d,]*(?:\.\d+)?)\s*(亿元|万元|元|亿|万)',unicodedata.normalize('NFKC',quote)):
@@ -143,11 +160,16 @@ def review(spec, base, verify_urls=False):
                     context.prec=220
                     mentions.append(str(Decimal(match.group(1).replace(',',''))*factor))
         checks={key:None if value is None or not mentions else any(Decimal(value)==Decimal(n) for n in mentions) for key,value in metric['normalized'].items()}
-        metric['sourceEvidenceCheck']=dict(excerpt=quote,excerptMatched=matched,numericMentionMatch=checks,scope='只比摘录中的显式数字与单位，不认证指标、主体、币种、审计状态或语义；亏损文字与括号等需另核')
+        source_usable=source_row['sourceRead'] and source_row.get('hashMatch') is not False and not source_row.get('timeCheck',{}).get('futurePublication') and source_row.get('timeCheck',{}).get('precision')!='invalid'
+        if source_row.get('timeCheck',{}).get('cutoffRequested'):source_usable=source_usable and source_row['timeCheck']['availableAtCutoff'] is True
+        if source_row.get('urlCheck',{}).get('requested'):source_usable=source_usable and source_row['urlCheck'].get('bytesMatch') is True
+        metric['sourceEvidenceCheck']=dict(excerpt=quote,excerptMatched=matched,evidencePage=evidence_page,matchedContexts=locations,sourceChecksPassed=bool(source_usable),numericMentionMatch=checks,scope='页码指提取页；来源检查通过不认证来源身份；只比逐字摘录和显式数字与单位，不认证表格列、脚注对应、指标、主体、币种、审计状态或语义；亏损文字与括号等需另核')
+        if not source_usable:metric['warnings'].append('指标来源的读取、摘要、联网对应或截止条件存在缺口，数字命中不代表证据可用')
         if not matched:metric['warnings'].append('指标没有匹配的专属原文摘录，金额与口径仍为声明，比较仅按输入暂算')
         elif not mentions:metric['warnings'].append('摘录未给出可识别的显式金额与单位，需核对指标原句')
         elif any(value is False for value in checks.values()):metric['warnings'].append('声明数值未匹配专属摘录中的显式金额，先核对原单位、正负号和指标')
     human=[]
+    for binding in bindings:human.append(('指标与主张关联',binding['claimId']+' ← '+binding['metricId']+'；'+binding['rationale']+'；输入者声明关联，不认证指标语义'))
     for metric in metrics:
         values=metric['normalized']; labels={'value':'声明值','lower':'声明区间下限','upper':'声明区间上限'}
         from decimal import Decimal
@@ -155,6 +177,7 @@ def review(spec, base, verify_urls=False):
         human.append((metric['subject']+' · '+metric['metric']+' · '+metric['disclosureType'],description+'；原单位：'+metric['unit']+'；'+metric['auditStatus']+'；'+metric['basis']+'；'+metric['periodStart']+'至'+metric['periodEnd']))
         human.append(('公告数值核查范围','以上金额、审计和口径来自输入声明；比较结果仅为按声明数值暂算，未认证原文指标对应关系。'))
         if metric.get('evidenceExcerpt'):human.append(('指标专属原句',metric['evidenceExcerpt']+'；逐字匹配：'+('是' if metric['sourceEvidenceCheck']['excerptMatched'] else '否')+'；数字命中不等于指标认证'))
+        for hit in metric['sourceEvidenceCheck']['matchedContexts'][:3]:human.append(('指标原句位置与上下文','来源：'+metric['sourceId']+'；提取页'+str(hit['page'])+'；偏移'+str(hit['offset'])+'；'+hit['before']+'【指标原句】'+hit['excerpt']+'【后文】'+hit['after']+'；不认证表格列或脚注对应'))
         for warning in metric['warnings']: human.append(('公告核对提示',warning))
         if 'versionDifference' in metric: human.append(('版本差额',metric['versionDifference']+'；'+metric['differenceMeaning']))
     for row in rows:
@@ -162,6 +185,7 @@ def review(spec, base, verify_urls=False):
         human.append((row['id']+' · 来源地址',str(row.get('sourceUrl') or '未知')+'；'+str(row.get('urlCheck',{}).get('reason','文件未读取，地址与文件对应关系未核'))))
         if row.get('urlCheck',{}).get('status')=='visited':human.append((row['id']+' · 实际访问比较','下载字节与当前文件'+('一致' if row['urlCheck']['bytesMatch'] else '不一致')+'；仍不认证发布者与内容'))
         human.append((row['id']+' · 核查范围','文件读取不证明内容真实；发布者未认证，语义未自动复核，附件及表格布局未核'))
+        if row['attachmentCoverage']['required']:human.append((row['id']+' · 必需附件','已登记且读取：'+str(row['attachmentCoverage']['available'])+'；缺失或未通过摘要：'+str(row['attachmentCoverage']['missing'])+'；'+row['attachmentCoverage']['scope']))
         human.append((row['id']+' · 披露时间',row.get('timeCheck',{}).get('reason','未知')))
         if cutoff:human.append((row['id']+' · 截止可用性','按声明时间：'+{True:'截止前可用',False:'截止后才可用',None:'不能确定'}[row.get('timeCheck',{}).get('availableAtCutoff')]+'；不认证首次披露时间'))
         human.append((row['id']+' · 原文摘录',row.get('excerpt') or '未提供摘录'))
@@ -212,7 +236,7 @@ def review(spec, base, verify_urls=False):
     judgments=[row for row in priority if row[0].endswith(' · 本轮判断')]
     human[:0]=judgments+[('本轮能够确认',summary['confirmedScope']),('本轮不能确认',summary['cannotConfirm']),('反证查找范围',summary['counterevidenceSearch']),('下一步','；'.join(summary['nextSteps']))]+[row for row in priority if row not in judgments]
     return dict(methodVersion=spec['inputSchema'],conclusion=summary['fileChecks']+'。核对匹配不等于证实；逐项复核声明、反证范围和剩余问题见正文。',
-                sources=rows,claims=claim_rows,announcementMetrics=metrics,artifactGroups=list(groups.values()),normalizedTextGroups=list(text_groups.values()),sourceRelations=relations,searchLog=searches,researchPlan=plan,answerSummary=summary,humanRows=human,
+                sources=rows,claims=claim_rows,announcementMetrics=metrics,metricBindings=bindings,artifactGroups=list(groups.values()),normalizedTextGroups=list(text_groups.values()),sourceRelations=relations,searchLog=searches,researchPlan=plan,answerSummary=summary,humanRows=human,
                 limitations=['文件读取和摘要一致不认证发布机构、真实披露时间或内容真实性。','不同文件摘要不证明来源独立；转载和通稿需追溯共同出处。','核查支持、反证及后续更正；未找到反证不等于消息真实。','PDF只提取文本，不做OCR；匹配失败保留原因。','默认仅核本地文件；只有显式verify-urls才联网，不执行原文指令、不复制原文件进入发布包。'])
 
 def main(argv=None):

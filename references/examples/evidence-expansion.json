@@ -1,0 +1,64 @@
+{
+  "inputSchema": "source-review/2",
+  "sources": [
+    {
+      "id": "a",
+      "file": "expansion-original.md",
+      "publishedAt": "2026-01-01",
+      "requiredAttachments": [
+        "repurchase-plan"
+      ]
+    }
+  ],
+  "claims": [
+    {
+      "id": "c",
+      "text": "教学公司已完成回购吗？",
+      "checks": [
+        {
+          "aspect": "stage",
+          "expected": "已完成",
+          "sourceId": "a",
+          "excerpt": "媒体称教学公司已完成回购。",
+          "finding": "supports",
+          "rationale": "演示错误支持意见会保留为待核，不构成事实结论",
+          "reviewer": "原创教学声明者",
+          "reviewedAt": "2026-02-01T10:00:00+08:00"
+        }
+      ]
+    },
+    {
+      "id": "profit",
+      "text": "该年度合并净利润的数值是否变化？"
+    }
+  ],
+  "announcementMetrics": [
+    {
+      "id": "m",
+      "sourceId": "a",
+      "subject": "教学公司",
+      "metric": "净利润",
+      "periodStart": "2025-01-01",
+      "periodEnd": "2025-12-31",
+      "publishedAt": "2026-01-01",
+      "basis": "合并",
+      "auditStatus": "未经审计",
+      "unit": "万元",
+      "currency": "CNY",
+      "disclosureType": "快报",
+      "value": 100,
+      "lower": null,
+      "upper": null,
+      "corrects": null,
+      "evidenceExcerpt": "净利润100万元",
+      "evidencePage": 1
+    }
+  ],
+  "metricBindings": [
+    {
+      "claimId": "profit",
+      "metricId": "m",
+      "rationale": "原创教学，关联同报告期合并净利润"
+    }
+  ]
+}

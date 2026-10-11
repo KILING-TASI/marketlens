@@ -6,6 +6,12 @@ import socket
 import ssl
 from urllib.parse import urlsplit, urljoin
 
+class FetchError(ValueError):
+    """Keep observable failure metadata without silently retrying or certifying."""
+    def __init__(self,message,code,status=None,retry_after=None,chain=None):
+        super().__init__(message)
+        self.details=dict(code=code,status=status,retryAfter=retry_after,redirectChain=list(chain or []),retried=False)
+
 def fetch(url):
     chain=[]
     for _ in range(4):
@@ -26,7 +32,10 @@ def fetch(url):
                 location=response.getheader('Location')
                 if not location: raise ValueError('重定向缺少目标')
                 url=urljoin(url,location);continue
-            if response.status!=200: raise ValueError('来源返回HTTP '+str(response.status)+'；未取得原文')
+            if response.status!=200:
+                code='rate-limited' if response.status==429 else 'temporarily-unavailable' if response.status in (502,503,504) else 'http-error'
+                retry_after=response.getheader('Retry-After')
+                raise FetchError('来源返回HTTP '+str(response.status)+'；未取得原文；保留失败记录，不自动重试'+('；来源声明Retry-After：'+retry_after if retry_after else ''),code,response.status,retry_after,chain)
             if response.getheader('Content-Encoding','identity')!='identity': raise ValueError('来源返回压缩传输；请用浏览器保存原文件')
             body=response.read(16*1024*1024+1)
             if len(body)>16*1024*1024: raise ValueError('原文件超过16MiB')

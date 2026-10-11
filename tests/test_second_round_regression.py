@@ -40,7 +40,9 @@ for field in ('expectedSha256','hashMatch','page','locatorVerified','sourceUrl',
     setattr(FrozenRegression,'test_change_'+field,test)
 for field in ('announcementMetrics','sourceRelations','searchLog','researchPlan'):
     def test(self,field=field):
-        new=copy.deepcopy(self.old);new[field]=[{'changed':True}]
+        new=copy.deepcopy(self.old);new[field]=[{'id':'m','sourceId':'a','changed':True}] if field=='announcementMetrics' else [{'changed':True}]
+        if field=='sourceRelations':
+            new['sources'].append({'id':'b'});new[field]=[{'from':'b','to':'a','type':'attachment','reason':'教学关联'}]
         self.assertIn(field,compare(self.old,new)['contextChanges'])
     setattr(FrozenRegression,'test_context_'+field,test)
 for kind in ('sources','claims'):
