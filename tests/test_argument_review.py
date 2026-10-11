@@ -1,10 +1,11 @@
-import unittest,json,copy
+import unittest,json,copy,sys
 from pathlib import Path
+ROOT=Path(__file__).resolve().parents[1]
+sys.path.insert(0,str(ROOT/'scripts'))
 from marketlens.claim_evidence import review as dispatch
 from marketlens.argument_review import review
 from marketlens.competing_hypotheses import review as hypotheses
 from marketlens.review_io import render,publish
-ROOT=Path(__file__).resolve().parents[1]
 def sample():return json.loads((ROOT/'references/examples/argument-teaching.json').read_text(encoding='utf-8'))
 class Arguments(unittest.TestCase):
     def test_v1_full_result_unchanged(self):
