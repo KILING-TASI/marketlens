@@ -85,6 +85,8 @@ def identity_key(kind, row):
 def input_warnings(kind, rows):
     warnings = []
     for row in rows:
+        if kind in {"market", "fund"}:
+            warnings.append({"code": "SECURITY_IDENTITY_UNCHECKED", "instrument": row["instrument"], "message": "证券代码与历史上市身份未对照官方名录；前缀正确不等于代码真实。", "next_step": "核对当时市场、证券类别、代码、全称及名称变更，不推断账户主体。"})
         if kind in {"market", "fund"} and not row["instrument"].startswith(("SSE:", "SZSE:")):
             warnings.append({"code": "IDENTITY_PREFIX", "instrument": row["instrument"], "message": "日频交易日匹配只支持SSE:或SZSE:前缀，原身份保留。", "next_step": "核对原证券交易所与代码后另行导入完整身份，不猜交易所或改旧记录。"})
         if kind == "calendar" and row["market"] not in {"SSE", "SZSE"}:

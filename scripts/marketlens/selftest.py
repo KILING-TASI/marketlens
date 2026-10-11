@@ -284,7 +284,8 @@ class DataRound(unittest.TestCase):
         self.import_rows("market",[observation()],source="来源B")
         r=self.store.assess("2026-10-08T23:00:00+08:00")
         self.assertEqual(len(r["cards"]),1)
-        self.assertFalse(r["quality_issues"])
+        self.assertFalse(any(x['code']=='G01' for x in r["quality_issues"]))
+        self.assertTrue(any(x['code']=='SECURITY_IDENTITY_UNCHECKED' for x in r["quality_issues"]))
 
     def test_correction_is_adjustment_not_false_sell(self):
         eid=self.store.add_evidence(self.evidence(cumulative_amount_cny=200000000))["id"]

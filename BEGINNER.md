@@ -33,3 +33,5 @@
 | 查看独立教学流程 | `python scripts/run.py sources review --input references/examples/source-announcement.json --out-dir 新目录` |
 
 完整说明见[原始资料核对](references/source-verification.md)。PDF可选组件、失败原因、相对路径及未核事项分别说明；不要求其他仓库。
+
+需要追出处、核上下文与反证、逐项判断或比较新旧报告时，见[深入证据核对](references/evidence-depth.md)。

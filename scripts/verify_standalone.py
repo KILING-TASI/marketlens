@@ -164,6 +164,13 @@ def verify(output, archive=None):
         before=hashlib.sha256((root/'work/source-review/result.json').read_bytes()).hexdigest()
         run(['scripts/run.py','sources','review','--input','references/examples/source-announcement.json','--out-dir','work/source-review'],2)
         assert hashlib.sha256((root/'work/source-review/result.json').read_bytes()).hexdigest()==before
+        run(['scripts/run.py','sources','review','--input','references/examples/evidence-depth.json','--out-dir','work/evidence-depth'])
+        deep=json.loads((root/'work/evidence-depth/result.json').read_text(encoding='utf-8'))
+        assert deep['methodVersion']=='source-review/2'
+        assert deep['sources'][0]['fullTextAlerts'] and deep['claims'][0]['aspectChecks'][1]['effectiveFinding']=='contradicts'
+        assert not deep['announcementMetrics'][1]['forecastComparison']['overlap']
+        run(['scripts/run.py','sources','compare','--previous','work/source-review/result.json','--current','work/evidence-depth/result.json','--out-dir','work/source-diff'])
+        assert json.loads((root/'work/source-diff/result.json').read_text(encoding='utf-8'))['methodVersion']=='source-review-diff/1'
         evidence = {"scope": "directory/process isolation; host still contains other repositories",
                     "archive_sha256": digest, "archive_files": names, "dependencies": "Python standard library only; venv without pip",
                     "origins": origins, "commands": records, "notices": notices,

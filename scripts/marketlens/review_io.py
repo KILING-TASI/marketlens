@@ -49,6 +49,8 @@ def read(path):
 
 def render(result,title):
     summary=result.get('conclusion','结果按所填资料范围生成；先核对下方依据与缺口。')
+    if result.get('methodVersion')=='claim-evidence/1':
+        summary='以下关系仅由输入者声明；本流程未读取原始文件或认证来源、语义及消息真伪。旧接口计数保留在底稿，不能当作已核结论。'
     lines=result.get('humanRows',[])
     table='<table><tr><th>核对项</th><th>本次结果</th></tr>'+''.join('<tr><td>'+escape(str(a))+'</td><td>'+escape(str(b))+'</td></tr>' for a,b in lines)+'</table>' if lines else ''
     gaps='<ul>'+''.join('<li>'+escape(str(s))+'</li>' for s in result.get('limitations',[]))+'</ul>'
@@ -81,7 +83,7 @@ def render(result,title):
         return '<h2>'+heading+'</h2><table>'+''.join('<tr><td>'+escape(str(a))+'</td><td>'+escape(str(b))+'</td></tr>' for a,b in items)+'</table>' if items else ''
     argument_html=rows_table(evidence_rows,'原文、关联与复核记录')+rows_table(structured,'声明的论证与未知事项')+rows_table(pending,'建议及未纳入的关联')
     notice='<aside role="note"><strong>计算已完成，证据仍需复查</strong><p>报告生成成功只表示所填输入通过本流程。请先看结论适用范围，再核对来源、期间、版本与排除项；缺口不能当作零。</p></aside>'
-    return '<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+escape(title)+'</title><style>body{max-width:960px;margin:32px auto;padding:0 20px;font:17px/1.7 system-ui;color:#203047}aside{padding:12px 16px;background:#f2f5fa;border-left:4px solid #48658b}td,th{padding:10px;border-bottom:1px solid #ddd;overflow-wrap:anywhere}table{width:100%}pre{white-space:pre-wrap;overflow-wrap:anywhere}details{margin-top:24px}.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}.card{padding:12px;border:1px solid #d9e2ec;border-radius:8px;background:#f4f7fa}.gap{background:#fff4d8;border-color:#e8c971}.conflict{background:#fff0ed}</style><h1>'+escape(title)+'</h1><p>'+escape(summary)+'</p>'+cards+notice+table+argument_html+'<h2>范围与缺口</h2>'+gaps+'<details><summary>完整输入绑定、结果及依据</summary><pre>'+escape(json.dumps(result,ensure_ascii=False,indent=2,allow_nan=False))+'</pre></details></html>'
+    return '<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+escape(title)+'</title><style>body{max-width:960px;margin:32px auto;padding:0 20px;font:17px/1.7 system-ui;color:#203047}aside{padding:12px 16px;background:#f2f5fa;border-left:4px solid #48658b}td,th{padding:10px;border-bottom:1px solid #ddd;overflow-wrap:anywhere}table{width:100%;table-layout:fixed}th:first-child,td:first-child{width:28%}td{vertical-align:top}pre{white-space:pre-wrap;overflow-wrap:anywhere}details{margin-top:24px}.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}.card{padding:12px;border:1px solid #d9e2ec;border-radius:8px;background:#f4f7fa}.gap{background:#fff4d8;border-color:#e8c971}.conflict{background:#fff0ed}</style><h1>'+escape(title)+'</h1><p>'+escape(summary)+'</p>'+cards+notice+table+argument_html+'<h2>范围与缺口</h2>'+gaps+'<details><summary>完整输入绑定、结果及依据</summary><pre>'+escape(json.dumps(result,ensure_ascii=False,indent=2,allow_nan=False))+'</pre></details></html>'
 
 def publish(spec,result,out,title):
     out=Path(out).absolute()

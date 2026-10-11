@@ -2,7 +2,7 @@
 
 核对市场消息的依据、推断和证据缺口，说明哪些判断有支持、适用到哪里，以及什么新资料会改变判断。
 
-[![原创代码 MIT](https://img.shields.io/badge/原创代码-MIT-green)](LICENSE) · [当前发行版 v0.3.5](https://github.com/KILING-TASI/marketlens/releases/tag/v0.3.5) · [运行检查](https://github.com/KILING-TASI/marketlens/actions)
+[![原创代码 MIT](https://img.shields.io/badge/原创代码-MIT-green)](LICENSE) · [当前发行版 v0.5.0](https://github.com/KILING-TASI/marketlens/releases/tag/v0.5.0) · [运行检查](https://github.com/KILING-TASI/marketlens/actions)
 
 ## 能解决什么问题
 
@@ -16,7 +16,7 @@
 
 ## 快速开始
 
-从[发行页](https://github.com/KILING-TASI/marketlens/releases/tag/v0.3.5)下载完整源码并解压，需要 Python 3.10 或以上。在源码目录执行：
+从[发行页](https://github.com/KILING-TASI/marketlens/releases/tag/v0.5.0)下载完整源码并解压，需要 Python 3.10 或以上。在源码目录执行：
 
 ```text
 python try_demo.py --no-open --out-dir reports/first-demo
@@ -77,3 +77,16 @@ marketlens --help
 | 查看独立教学流程 | `python scripts/run.py sources review --input references/examples/source-announcement.json --out-dir 新目录` |
 
 完整说明见[原始资料核对](references/source-verification.md)。PDF可选组件、失败原因、相对路径及未核事项分别说明；不要求其他仓库。
+
+## v0.5.0 深入证据核对
+
+原文匹配之后，继续核查证明范围、身份与时间、部分否认、反证查找记录和版本影响。正文分别说明能确认、不能确认和下一步；不把匹配或复核声明当真实性认证。
+
+| 要核什么 | 使用入口 |
+|---|---|
+| 上传文件是否对应来源地址 | `sources review --verify-urls`，显式下载比较 |
+| 原句有没有漏掉限定 | 全文提示、前后文、表头脚注及提取缺口 |
+| 哪个部分有依据 | 主体、动作、金额、期间、阶段等逐项复核 |
+| 新资料影响哪些判断 | `sources compare`，保留冻结报告 |
+
+见[深入核对说明](references/evidence-depth.md)与[完整原创案例](references/examples/evidence-depth.json)。

@@ -1,0 +1,43 @@
+# 深入证据核对（v0.5.0）
+
+目标是回答：原文说了什么、支持到哪一步、哪些仍未核明、继续查什么可能改变判断。不是让用户从底稿字段中自行拼答案。
+
+## 单独安装的最短流程
+
+已有文件：`marketlens sources scaffold --source 原文.md --claim "要核对的具体问题" --out input.json`；填写摘录、来源和必要复核记录后运行 `marketlens sources review --input input.json --out-dir 新目录`。
+
+只有链接：先显式 `sources fetch --url HTTPS地址 --out-dir 新目录`。需要确认上传文件与地址对应，可对review加 `--verify-urls`。这一选项实际重新下载并比较字节，保存最终地址、重定向链、检查时间与摘要；失败保留原因。默认review不会访问所填URL，也不会认证发布机构。动态页面或更新会导致字节不同，不能直接判伪造。
+
+本次读取事实、复核意见和发布者认证分别展示；地址未经访问时明说。全文关键词提示覆盖所有已提取页，展示最多100项命中与上下文，可能误报或漏报。只扫描已提取文字，不替代语义复核。实际字节摘要保持原样；另外仅统一空白生成疑似重复文本组，分组不等于独立来源认证。
+
+## 逐项判断
+
+source-review/2在每条主张的checks中分别记录subject/action/amount/period/stage/scope/identity/time。每项含expected、sourceId、excerpt、finding、rationale、reviewer、reviewedAt。finding为supports/contradicts/partial/unknown。非unknown需原句、声明复核者及带时区时间，身份仍未认证。
+
+程序检查原句确实出现在文件中，摘要、显式来源比较和截止条件是否相符；未匹配意见保留为待核建议，不升级。语义结论仍是复核声明。应区分“公司披露了订单”“确实签约”“已交付”“收入确认”，公告存在不能跨越这些步骤。
+
+主体需核全称、代码、市场、子公司或母公司、历史名称和生效期间；不能凭简称猜身份。CSV代码前缀正确也会标未核对证券身份，不把格式当真实性认证。
+
+## 上下文与完整性
+
+正文展示摘录前后文、提取页号与偏移；保留否定、单位、表头和脚注。HTML表格文本保留单元格分隔，但布局未认证。PDF只做可选文本提取，不做OCR；空白提取页、附件未核和表格布局未核明确提示。附件作为独立source登记，并用sourceRelations关联attachment，不因某附件存在就宣称资料齐全。
+
+一项原文最多16MiB、PDF最多500页、每次文件总量64MiB；超出分批。显式地址比较一次最多10项。限制不是性能保证，读取失败仍可交付已核部分。
+
+## 反证、版本与传播
+
+sourceRelations分别登记reprint/progress/correction/denial/attachment/independent-check，from指后续或子资料，to指前期资料；reason说明范围。全部为关系声明，不抹旧资料。独立验证声明仍需核出处，不能数票。
+
+否认某客户，不否认其他客户；未披露、不予置评、尚未确认与明确否认分开记录。材料不一致先检查截止日期、单位、范围、审计和修订，再解释是否真正冲突。
+
+searchLog逐项记录query/scope/status/checkedAt/sourceIds/reason；status为not-searched/searched-no-find/found/unavailable。已查记录需时间，found需引用资料。查找记录是过程声明，不冒充程序搜索；未找到不等于没有。researchPlan保留priorityQuestions/stopWhen/remainingQuestions，停止条件不自动视为已达成；先核最可能改变结论的缺口。
+
+新资料另存新报告，执行 `marketlens sources compare --previous 旧result.json --current 新result.json --out-dir 新对比目录`，显示资料变化及受影响主张，不覆盖或重算历史。没有比对到的语义变化仍需复核。
+
+## 公告范围与时间
+
+同指标、主体、报告期、报表口径和币种比较点值与区间、区间与区间，并提示边界变更及同条点值矛盾；后续实际值比较最新登记的预告修订区间。跨口径版本用relatedVersionId与scopeChangeReason关联，不伪装corrects，不直接求差额。金额正负和原单位保留，不以亏损绝对值代替盈利，不按偏离判定违规。
+
+可选asOf带时区。只有日期、同一天无法判断盘中是否已知；只有网页更新时间不能当首次披露时间。截止后资料或复核、未知时刻不升级当时已核状态。未指定截止也不认证所填发布时间。
+
+演示见[完整原创案例](examples/evidence-depth.json)，同时含母子公司边界、未交付、部分否认、单位脚注、区间更正、反证查找范围和下一步。原创教学不是真实公司结论。真实来源需另外取得并逐项核验；第三方内容不随MIT代码许可转移权利。

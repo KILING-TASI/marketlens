@@ -27,3 +27,5 @@ Use `marketlens arguments review` for claim-evidence/2 and `marketlens hypothese
 ## Original artifact checks (0.4.0)
 
 `sources fetch` explicitly downloads public HTTPS artifacts. `sources scaffold` hashes selected local bytes; `sources review` checks exact excerpts and optional PDF page locations. Signed disclosure metrics remain distinct from cumulative transaction cash. PDF extraction is optional (`marketlens[pdf]`); no OCR or automatic installation. Read, hash, location, declared relationship and semantic review are separate. See [source workflow](references/source-verification.md).
+
+Version 0.5.0 adds explicit URL-to-file byte comparison, context and full extracted-text alerts, declared aspect reviews, search scope, source relationships and frozen-result comparison. See [evidence workflow](references/evidence-depth.md). These checks do not authenticate publishers or certify semantic truth.

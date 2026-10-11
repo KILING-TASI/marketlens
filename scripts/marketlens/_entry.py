@@ -72,6 +72,7 @@ def doctor(args):
     try:root=str(resources())
     except ValueError:root=None;ready=False
     result=dict(status='environment-ready' if ready else 'environment-blocked',repo=REPO,version=version,python=platform.python_version(),teachingReady=ready,analysisComponents=analysis,resourceDirectory=root,dataChecked=False,sourceVerified=False,filesWritten=False,networkAccess=False,nextSteps=['运行 demo --out-dir 新目录 --auto-name 查看教学结果；教学不是实际研究。'])
+    result.update(networkScope='本次doctor环境检查未联网；sources fetch和显式verify-urls具备联网入口',optionalNetworkCommands=['sources fetch','sources review --verify-urls'])
     if analysis and not all(analysis.values()):result['nextSteps'].append('轻量金额与现金路径可用；完整历史分析请安装 .[analysis]，不会自动安装。')
     if not ready:result['nextSteps']=['核对Python版本与完整源码或wheel资源，按README处理。']
     if options.json:print(json.dumps(result,ensure_ascii=False,indent=2))

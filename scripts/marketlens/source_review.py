@@ -8,6 +8,7 @@ import io
 from html.parser import HTMLParser
 from pathlib import Path
 from .review_io import publish, read
+from .evidence_details import enrich_source, links_and_search, aspects, scan, ASPECTS
 
 LIMIT = 16 * 1024 * 1024
 
@@ -17,6 +18,7 @@ class VisibleText(HTMLParser):
     def handle_starttag(self, tag, attrs):
         if tag in ('script', 'style'): self.hidden += 1
         if tag in ('p', 'br', 'div', 'li', 'tr'): self.parts.append('\n')
+        if tag in ('td','th'):self.parts.append(' | ')
     def handle_endtag(self, tag):
         if tag in ('script', 'style') and self.hidden: self.hidden -= 1
     def handle_data(self, data):
@@ -36,7 +38,11 @@ def artifact(path):
         except PdfReadError as error: raise ValueError('PDF读取失败：'+str(error))
         if reader.is_encrypted: raise ValueError('加密PDF暂不支持；请提供有权读取的文本')
         if len(reader.pages)>500: raise ValueError('PDF超过500页限制，请明确提供需要核对的分册')
-        pages = [p.extract_text() or '' for p in reader.pages]
+        pages=[]; extracted=0
+        for page in reader.pages:
+            content=page.extract_text() or '';extracted+=len(content)
+            if extracted>LIMIT:raise ValueError('PDF提取文本超过16MiB字符限制，请按分册核对')
+            pages.append(content)
     else:
         content = raw.decode('utf-8-sig')
         if path.suffix.lower() in ('.html', '.htm'):
@@ -47,24 +53,21 @@ def artifact(path):
     return hashlib.sha256(raw).hexdigest(), pages
 
 def alerts(text):
-    groups = [
-        ('uncertain', ('据传','传闻','或将','拟','有望','疑似','有消息称'), '核对支持的是传闻存在、计划发布还是实际执行。'),
-        ('actor-boundary', ('国家队','主力','机构','游资','庄家','北向','央企','国资'), '说明具体主体、统计范围和识别依据；集体名称或所有制不证明动作与动机。'),
-        ('absolute-or-trade', ('必然','一定','百分之百','满仓','翻倍','必涨'), '核对是否为引用、否定或保证性表述；工具不背书收益保证和交易建议。'),
-        ('stage-check', ('尚未','未实施','拟','否认','澄清','更正','终止'), '逐项对照动作和阶段；否认与更正不能替代全部历史。')]
-    return [dict(code=code, matched=[w for w in words if w in text], question=question,
-                 scope='关键词提示可能误报或漏报，不自动改变证据关系')
-            for code, words, question in groups if any(w in text for w in words)]
+    return [dict(w,matched=[w['matched']]) for w in scan(text)]
 
-def review(spec, base):
-    if not isinstance(spec, dict) or spec.get('inputSchema') != 'source-review/1': raise ValueError('须为source-review/1')
-    if set(spec)-{'inputSchema','sources','claims','announcementMetrics'}: raise ValueError('原文核对输入含未知字段')
+def review(spec, base, verify_urls=False):
+    if not isinstance(spec, dict) or spec.get('inputSchema') not in ('source-review/1','source-review/2'): raise ValueError('须为source-review/1或source-review/2')
+    if set(spec)-{'inputSchema','sources','claims','announcementMetrics','sourceRelations','searchLog','researchPlan','asOf'}: raise ValueError('原文核对输入含未知字段')
+    from .review_io import instant
+    cutoff=instant(spec['asOf']) if spec.get('asOf') is not None else None
     sources = spec.get('sources'); claims = spec.get('claims')
     if not isinstance(sources,list) or not 1 <= len(sources) <= 100: raise ValueError('需1至100项原始资料')
     if not isinstance(claims,list) or not 1 <= len(claims) <= 100: raise ValueError('需1至100条主张')
-    rows=[]; ids=set(); texts={}; groups={}
+    rows=[]; ids=set(); texts={}; groups={}; all_pages={};text_groups={};input_bytes=0
+    if verify_urls and len(sources)>10:raise ValueError('一次显式联网核对最多10项来源，其他资料可分批核对')
     for source in sources:
         if not isinstance(source,dict): raise ValueError('资料须为对象')
+        if set(source)-{'id','file','expectedSha256','sourceUrl','publishedAt','page','excerpt','title','sourceVersion','subjectId','sourceType'}:raise ValueError('来源输入含未知字段；不能填写程序生成的核查结果')
         sid=source.get('id')
         if not isinstance(sid,str) or not sid.strip() or sid in ids: raise ValueError('资料ID须非空且唯一')
         ids.add(sid)
@@ -75,7 +78,10 @@ def review(spec, base):
         row=dict(source, sourceRead=False, publisherAuthenticated=False, semanticVerification='not-performed')
         try:
             path=Path(source.get('file','')); path=path if path.is_absolute() else base/path
+            input_bytes+=path.stat().st_size
+            if input_bytes>64*1024*1024:raise ValueError('本次所选原文件总量超过64MiB，余项保留未读取，请分批核对')
             sha,pages=artifact(path); row.update(sourceRead=True, actualSha256=sha, pageCount=len(pages))
+            all_pages[sid]=pages
             expected=source.get('expectedSha256'); row['hashMatch']=None if expected is None else sha==expected
             page=source.get('page'); excerpt=source.get('excerpt')
             if page is not None and (type(page) is not int or not 1 <= page <= len(pages)):
@@ -87,12 +93,18 @@ def review(spec, base):
                            reason='摘录逐字匹配' if found else '未找到逐字摘录；扫描PDF或排版差异也可能导致失败，不自动判定伪造')
                 texts[sid]=selected
             groups.setdefault(sha,[]).append(sid)
+            enrich_source(row,pages,base,verify_urls,cutoff)
+            if row['normalizedTextSha256']:text_groups.setdefault(row['normalizedTextSha256'],[]).append(sid)
         except (OSError,ValueError,UnicodeError,TypeError) as error:
             row.update(reason=str(error), excerptFound=False, locatorVerified=False)
         rows.append(row)
+    relations,searches=links_and_search(spec,rows)
+    for row in rows:
+        row['registeredAttachments']=[rel['from'] for rel in relations if rel['type']=='attachment' and rel['to']==row['id']]
     claim_rows=[]; seen=set()
     for claim in claims:
         if not isinstance(claim,dict): raise ValueError('主张须为对象')
+        if set(claim)-{'id','text','links','checks'}:raise ValueError('主张输入含未知字段；核查结果由程序生成')
         cid=claim.get('id'); text=claim.get('text')
         if not isinstance(cid,str) or not cid.strip() or cid in seen or not isinstance(text,str) or not text.strip(): raise ValueError('主张ID须唯一，文字不能为空')
         seen.add(cid); links=claim.get('links',[])
@@ -105,22 +117,59 @@ def review(spec, base):
             if link.get('relation') not in ('supports','contradicts','partial','context'): raise ValueError('关联关系无效')
             if not isinstance(link.get('rationale'),str) or not link['rationale'].strip(): raise ValueError('须填写关联理由')
         claim_rows.append(dict(claim, alerts=alerts(text), relationSemanticsVerified=False,
-                               reviewProgress='待逐项语义复核', status='材料检查完成，不代表主张证实'))
+                               reviewProgress='待逐项语义复核', status='材料检查完成，不代表主张证实',aspectChecks=aspects(claim,rows,all_pages)))
+        checks=claim_rows[-1]['aspectChecks']
+        if checks:claim_rows[-1]['reviewProgress']=str(sum(c['effectiveFinding']!='unknown' for c in checks))+'项已有复核声明，'+str(sum(c['effectiveFinding']=='unknown' for c in checks))+'项仍未知；语义与复核身份未认证'
+        opinions=[]
+        for finding,label in [('contradicts','有反对意见'),('supports','有支持意见'),('partial','只有局部支持'),('unknown','仍未知')]:
+            names=list(dict.fromkeys(ASPECTS[c['aspect']] for c in checks if c['effectiveFinding']==finding))
+            if names:opinions.append('、'.join(names)+label)
+        claim_rows[-1]['declaredJudgment']='按复核声明：'+'；'.join(opinions)+'。仅限所核对象与范围，不是整体真实性认证。' if opinions else '尚未登记逐项语义复核，不能由文件匹配确认整条消息。'
     from .announcement_review import review as announcements
     metrics=announcements(spec.get('announcementMetrics',[]),ids)
     human=[]
     for metric in metrics:
         values=metric['normalized']; labels={'value':'披露值','lower':'区间下限','upper':'区间上限'}
-        description='；'.join(labels[k]+'：'+('未知' if v is None else v+'元（'+metric['currency']+'）') for k,v in values.items())
+        from decimal import Decimal
+        description='；'.join(labels[k]+'：'+('未知' if v is None else format(Decimal(v),',f')+'元（'+metric['currency']+'）') for k,v in values.items())
         human.append((metric['subject']+' · '+metric['metric']+' · '+metric['disclosureType'],description+'；原单位：'+metric['unit']+'；'+metric['auditStatus']+'；'+metric['basis']+'；'+metric['periodStart']+'至'+metric['periodEnd']))
         for warning in metric['warnings']: human.append(('公告核对提示',warning))
         if 'versionDifference' in metric: human.append(('版本差额',metric['versionDifference']+'；'+metric['differenceMeaning']))
     for row in rows:
         human.append((row['id'], '读取成功' if row['sourceRead'] else '读取失败：'+row['reason']))
+        human.append((row['id']+' · 来源地址',str(row.get('sourceUrl') or '未知')+'；'+str(row.get('urlCheck',{}).get('reason','文件未读取，地址与文件对应关系未核'))))
+        if row.get('urlCheck',{}).get('status')=='visited':human.append((row['id']+' · 实际访问比较','下载字节与当前文件'+('一致' if row['urlCheck']['bytesMatch'] else '不一致')+'；仍不认证发布者与内容'))
+        human.append((row['id']+' · 核查范围','文件读取不证明内容真实；发布者未认证，语义未自动复核，附件及表格布局未核'))
+        human.append((row['id']+' · 披露时间',row.get('timeCheck',{}).get('reason','未知')))
+        if cutoff:human.append((row['id']+' · 截止可用性','按声明时间：'+{True:'截止前可用',False:'截止后才可用',None:'不能确定'}[row.get('timeCheck',{}).get('availableAtCutoff')]+'；不认证首次披露时间'))
         human.append((row['id']+' · 原文摘录',row.get('excerpt') or '未提供摘录'))
         human.append((row['id']+' · 摘录与定位',row['reason']+'；摘要比较：'+('未提供声明摘要' if row.get('hashMatch') is None else '一致' if row['hashMatch'] else '不一致，请核对原文件或版本')))
+        for hit in row.get('contexts',[]):human.append((row['id']+' · 提取页'+str(hit['page'])+'上下文',hit['before']+'【摘录】'+hit['excerpt']+'【后文】'+hit['after']))
+        warning_groups={}
+        for warning in row.get('fullTextAlerts',[]):warning_groups.setdefault((warning['page'],warning['code']),[]).append(warning)
+        for (page,code),warnings in warning_groups.items():
+            matched='、'.join(dict.fromkeys(w['matched'] for w in warnings))
+            content=all_pages.get(row['id'],[''])[page-1];spans=[]
+            for w in sorted(warnings,key=lambda x:x['offset']):
+                start=max(0,w['offset']-60);end=min(len(content),w['offset']+len(w['matched'])+100)
+                if spans and start<=spans[-1][1]:spans[-1][1]=max(spans[-1][1],end)
+                else:spans.append([start,end])
+            contexts=' / '.join(content[start:end] for start,end in spans)
+            human.append((row['id']+' · 全文提示 / 提取页'+str(page),'命中：'+matched+'；'+warnings[0]['question']+'；上下文：'+contexts+'；可能误报或漏报'))
+        if row.get('extractionCoverage',{}).get('emptyPages'):human.append((row['id']+' · 提取缺口','以下页无可提取文本，不能当作完整核查：'+str(row['extractionCoverage']['emptyPages'])))
+    human.append(('文件分组',str(len(groups))+'个实际字节摘要组；'+str(len(text_groups))+'个规范化文本组。分组不证明来源独立；相同文本仅提示疑似重复。'))
+    for group in text_groups.values():
+        if len(group)>1:human.append(('疑似重复文本','、'.join(group)+'；只统一空白，保留各原文件摘要，不增加独立支持'))
+    relation_names={'reprint':'转载','progress':'后续进展','correction':'更正','denial':'否认','attachment':'附件','independent-check':'独立验证声明'}
+    for relation in relations:human.append(('来源链',relation['from']+' → '+relation['to']+'；'+relation_names[relation['type']]+'；'+relation['reason']+'；关系由输入者声明'))
+    search_names={'not-searched':'尚未查找','searched-no-find':'已查所列范围，未找到','found':'找到所列资料','unavailable':'来源无法访问'}
+    for search in searches:human.append(('反证查找记录',search['query']+'；范围：'+search['scope']+'；'+search_names[search['status']]+'；'+search['reason']+'；查找过程为声明，未找到不等于没有反证'))
     for claim in claim_rows:
-        human.append((claim['text'],claim['reviewProgress']))
+        human.append((claim['text']+' · 本轮判断',claim['declaredJudgment']))
+        human.append((claim['text'],claim['status']+'；'+claim['reviewProgress']))
+        for check in claim['aspectChecks']:
+            human.append((claim['text']+' · '+ASPECTS[check['aspect']],check['expected']+'；原句：'+(check['excerpt'] or '未知')+'；复核意见：'+{'supports':'声明支持','contradicts':'声明反对','partial':'局部支持','unknown':'尚未确认'}[check['effectiveFinding']]+'；'+check['rationale']+'；'+check['reason']))
+            for hit in check['matchedContexts'][:3]:human.append(('逐项原句位置与上下文','来源：'+str(check['sourceId'])+'；提取页'+str(hit['page'])+'；偏移'+str(hit['offset'])+'；'+hit['before']+'【核对原句】'+hit['excerpt']+'【后文】'+hit['after']))
         for warning in claim['alerts']: human.append((claim['text']+' · 措辞核对',warning['question']))
         for link in claim.get('links',[]):
             human.append((claim['text']+' · '+link['sourceId'],{'supports':'声明支持','contradicts':'声明反对','partial':'局部支持','context':'背景资料'}[link['relation']]+'；'+link['rationale']))
@@ -129,9 +178,19 @@ def review(spec, base):
                 human.append((link['sourceId']+' · 原文措辞核对',warning['question']+'触发文字：'+','.join(warning['matched'])+'；不自动改变关系。'))
             if not source.get('excerptFound') or source.get('hashMatch') is False:
                 human.append((claim['text']+' · 原文件缺口','关联资料的摘录或摘要未通过核对，此关联仍为输入者声明，不能按已核原文使用。'))
-    return dict(methodVersion='source-review/1',conclusion='实际读取所选文件并核对摘要、摘录及页码；发布者身份、原文语义和主张真伪仍未认证。',
-                sources=rows,claims=claim_rows,announcementMetrics=metrics,artifactGroups=list(groups.values()),humanRows=human,
-                limitations=['文件读取和摘要一致不认证发布机构、真实披露时间或内容真实性。','不同文件摘要不证明来源独立；转载和通稿需追溯共同出处。','核查支持、反证及后续更正；未找到反证不等于消息真实。','PDF只提取文本，不做OCR；匹配失败保留原因。','本流程不联网、不执行原文指令、不复制原文件进入发布包。'])
+    plan=spec.get('researchPlan',{})
+    if not isinstance(plan,dict) or set(plan)-{'priorityQuestions','stopWhen','remainingQuestions'} or any(not isinstance(v,list) or any(not isinstance(x,str) or not x.strip() for x in v) for v in plan.values()):raise ValueError('研究计划须为问题列表、停止条件列表和剩余问题列表')
+    for key,label in [('priorityQuestions','优先核查'),('stopWhen','本轮停止条件'),('remainingQuestions','下一步关键缺口')]:
+        for question in plan.get(key,[]):human.append((label,question+'；计划与达成情况需分别核对'))
+    declared=[c for c in claim_rows if c['aspectChecks']]
+    summary=dict(fileChecks='读取'+str(sum(r['sourceRead'] for r in rows))+'/'+str(len(rows))+'项；不代表内容真实',confirmedScope='本次'+str(sum(bool(r.get('excerptFound')) for r in rows))+'项逐字摘录匹配；'+str(sum(r.get('hashMatch') is False for r in rows))+'项摘要不一致。语义意见均为复核声明',cannotConfirm='发布者真实性、实际履约、身份认证与完整附件尚未由程序确认',reviewedClaims=len(declared),counterevidenceSearch='有声明查找记录' if searches else '未登记反证查找，不得称无反证',nextSteps=plan.get('remainingQuestions',[]) or ['核对关键主张的主体、动作、金额、期间、阶段及否认范围'])
+    priority=[row for row in human if any(row[0]==c['text'] or row[0].startswith(c['text']+' · ') for c in claim_rows) or row[0].endswith(' · 来源地址')]
+    human=[row for row in human if row not in priority]
+    judgments=[row for row in priority if row[0].endswith(' · 本轮判断')]
+    human[:0]=judgments+[('本轮能够确认',summary['confirmedScope']),('本轮不能确认',summary['cannotConfirm']),('反证查找范围',summary['counterevidenceSearch']),('下一步','；'.join(summary['nextSteps']))]+[row for row in priority if row not in judgments]
+    return dict(methodVersion=spec['inputSchema'],conclusion=summary['fileChecks']+'。核对匹配不等于证实；逐项复核声明、反证范围和剩余问题见正文。',
+                sources=rows,claims=claim_rows,announcementMetrics=metrics,artifactGroups=list(groups.values()),normalizedTextGroups=list(text_groups.values()),sourceRelations=relations,searchLog=searches,researchPlan=plan,answerSummary=summary,humanRows=human,
+                limitations=['文件读取和摘要一致不认证发布机构、真实披露时间或内容真实性。','不同文件摘要不证明来源独立；转载和通稿需追溯共同出处。','核查支持、反证及后续更正；未找到反证不等于消息真实。','PDF只提取文本，不做OCR；匹配失败保留原因。','默认仅核本地文件；只有显式verify-urls才联网，不执行原文指令、不复制原文件进入发布包。'])
 
 def main(argv=None):
     p=argparse.ArgumentParser(description='独立原文核对：明确选择文件，不认证消息真伪')
@@ -140,6 +199,8 @@ def main(argv=None):
     s.add_argument('--claim',default='填写要核对的具体主张'); s.add_argument('--excerpt')
     f=sub.add_parser('fetch'); f.add_argument('--url',required=True); f.add_argument('--out-dir',type=Path,required=True)
     r=sub.add_parser('review'); r.add_argument('--input',type=Path,required=True); r.add_argument('--out-dir',type=Path,required=True)
+    r.add_argument('--verify-urls',action='store_true',help='显式访问所填公开HTTPS地址并比较字节；最多10项，不认证发布者')
+    c=sub.add_parser('compare');c.add_argument('--previous',type=Path,required=True);c.add_argument('--current',type=Path,required=True);c.add_argument('--out-dir',type=Path,required=True)
     a=p.parse_args(argv)
     try:
         if a.command=='fetch':
@@ -161,14 +222,21 @@ def main(argv=None):
             print('原文件已取得，来源身份与内容仍待核查：'+str(a.out_dir))
         elif a.command=='scaffold':
             sha,pages=artifact(a.source)
-            spec=dict(inputSchema='source-review/1',sources=[dict(id='source-1',file=str(a.source.resolve()),expectedSha256=sha,sourceUrl=None,publishedAt=None,page=None,excerpt=a.excerpt)],claims=[dict(id='claim-1',text=a.claim,links=[])])
+            spec=dict(inputSchema='source-review/2',sources=[dict(id='source-1',file=str(a.source.resolve()),expectedSha256=sha,sourceUrl=None,publishedAt=None,page=None,excerpt=a.excerpt)],claims=[dict(id='claim-1',text=a.claim,links=[],checks=[])],sourceRelations=[],searchLog=[],researchPlan=dict(priorityQuestions=[],stopWhen=[],remainingQuestions=[]))
             with a.out.open('x',encoding='utf-8') as f: json.dump(spec,f,ensure_ascii=False,indent=2)
             print('模板已生成：请填写主张、摘录、来源和日期；未知保留空值。')
+        elif a.command=='compare':
+            if a.out_dir.exists():raise ValueError('输出目录已存在，历史结果不覆盖')
+            from .evidence_compare import compare
+            spec=dict(previous=read(a.previous),current=read(a.current));result=compare(spec['previous'],spec['current'])
+            out=publish(spec,result,a.out_dir,'市场明镜：证据版本变化');print('对比报告已生成：'+str(out/'report.html'))
         else:
             print('进度 1/3：读取输入与明确选定的原文件')
-            result=review(read(a.input),a.input.resolve().parent)
+            if a.out_dir.exists():raise ValueError('输出目录已存在，历史结果不覆盖')
+            spec=read(a.input)
+            result=review(spec,a.input.resolve().parent,a.verify_urls)
             print('进度 2/3：核对摘要、摘录、页码和措辞风险')
-            out=publish(read(a.input),result,a.out_dir,'市场明镜：原始资料核对')
+            out=publish(spec,result,a.out_dir,'市场明镜：原始资料核对')
             print('进度 3/3：报告已保存：'+str(out/'report.html'))
         return 0
     except (OSError,ValueError,UnicodeError) as error:
