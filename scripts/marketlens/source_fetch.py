@@ -19,7 +19,7 @@ def fetch(url):
         try:
             raw.connect(address)
             connection.sock=ssl.create_default_context().wrap_socket(raw,server_hostname=parsed.hostname)
-            connection.request('GET',(parsed.path or '/')+('?' + parsed.query if parsed.query else ''),headers={'User-Agent':'MarketLens/0.4.0 source-check','Accept-Encoding':'identity'})
+            connection.request('GET',(parsed.path or '/')+('?' + parsed.query if parsed.query else ''),headers={'User-Agent':'MarketLens','Accept-Encoding':'identity'})
             response=connection.getresponse()
             chain.append(dict(url=url,status=response.status))
             if response.status in (301,302,303,307,308):
