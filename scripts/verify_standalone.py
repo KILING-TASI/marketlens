@@ -159,7 +159,7 @@ def verify(output, archive=None):
             assert hashlib.sha256((root/destination/'result.json').read_bytes()).hexdigest()==before
         run(['scripts/run.py','sources','review','--input','references/examples/source-announcement.json','--out-dir','work/source-review'])
         source_result=json.loads((root/'work/source-review/result.json').read_text(encoding='utf-8'))
-        assert source_result['sources'][0]['sourceRead'] and source_result['sources'][0]['excerptFound']
+        assert source_result['sources'][0]['sourceRead'] and source_result['sources'][0]['excerptFound'] and source_result['sources'][0]['hashMatch']
         assert source_result['announcementMetrics'][1]['forecastComparison']['outside']
         before=hashlib.sha256((root/'work/source-review/result.json').read_bytes()).hexdigest()
         run(['scripts/run.py','sources','review','--input','references/examples/source-announcement.json','--out-dir','work/source-review'],2)
@@ -167,7 +167,7 @@ def verify(output, archive=None):
         run(['scripts/run.py','sources','review','--input','references/examples/evidence-depth.json','--out-dir','work/evidence-depth'])
         deep=json.loads((root/'work/evidence-depth/result.json').read_text(encoding='utf-8'))
         assert deep['methodVersion']=='source-review/2'
-        assert deep['sources'][0]['fullTextAlerts'] and deep['claims'][0]['aspectChecks'][1]['effectiveFinding']=='contradicts'
+        assert deep['sources'][0]['hashMatch'] and deep['sources'][0]['fullTextAlerts'] and deep['claims'][0]['aspectChecks'][1]['effectiveFinding']=='contradicts'
         assert not deep['announcementMetrics'][1]['forecastComparison']['overlap']
         run(['scripts/run.py','sources','compare','--previous','work/source-review/result.json','--current','work/evidence-depth/result.json','--out-dir','work/source-diff'])
         assert json.loads((root/'work/source-diff/result.json').read_text(encoding='utf-8'))['methodVersion']=='source-review-diff/1'
