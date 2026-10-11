@@ -51,8 +51,25 @@ def render(result,title):
     lines=result.get('humanRows',[])
     table='<table><tr><th>核对项</th><th>本次结果</th></tr>'+''.join('<tr><td>'+escape(str(a))+'</td><td>'+escape(str(b))+'</td></tr>' for a,b in lines)+'</table>' if lines else ''
     gaps='<ul>'+''.join('<li>'+escape(str(s))+'</li>' for s in result.get('limitations',[]))+'</ul>'
+    labels={'declared-support':'有声明直接支持','declared-counterevidence':'有声明反对材料','partial-only':'只有局部支持','context-only':'只有背景资料','conflicting':'支持与反对材料冲突','insufficient':'缺少可纳入证据'}
+    records=result.get('records',[])
+    counts={k:sum(isinstance(r,dict) and r.get('status')==k for r in records) for k in labels}
+    cards=''
+    if any(counts.values()):
+        cards='<h2>主张的证据状态</h2><p>数量是主张分类，不是可信度、胜率或来源独立性。</p><div class="cards">'+''.join('<div class="card '+('gap' if k in ('partial-only','context-only') else 'conflict' if k=='conflicting' else '')+'"><strong>'+escape(v)+'</strong><div>'+str(counts[k])+' 条</div></div>' for k,v in labels.items())+'</div>'
+    structured=[];pending=[]
+    for r in records:
+        if not isinstance(r,dict):continue
+        if isinstance(r.get('argument'),dict):
+            for key,label in [('warrant','推理依据'),('qualifier','适用限定'),('falsifier','推翻条件')]:
+                field=r['argument'][key];structured.append((r['text']+' · '+label,field['text'] if field['text'] is not None else '未知：'+str(field['reason'])))
+        for link in r.get('proposedOrDeferredLinks',[]):
+            pending.append((r['id']+' / '+link['evidenceId'],{'supports':'声明支持','contradicts':'声明反对','partial':'局部支持','context':'背景'}[link['relation']]+'；'+{'proposal-not-reviewed':'建议未复核','binding-after-cutoff':'关联晚于截止时点'}[link['exclusion']]+'；提出者：'+link['binding']['proposedBy']))
+    def rows_table(items,heading):
+        return '<h2>'+heading+'</h2><table>'+''.join('<tr><td>'+escape(str(a))+'</td><td>'+escape(str(b))+'</td></tr>' for a,b in items)+'</table>' if items else ''
+    argument_html=rows_table(structured,'声明的论证与未知事项')+rows_table(pending,'建议及未纳入的关联')
     notice='<aside role="note"><strong>计算已完成，证据仍需复查</strong><p>报告生成成功只表示所填输入通过本流程。请先看结论适用范围，再核对来源、期间、版本与排除项；缺口不能当作零。</p></aside>'
-    return '<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+escape(title)+'</title><style>body{max-width:960px;margin:32px auto;padding:0 20px;font:17px/1.7 system-ui;color:#203047}aside{padding:12px 16px;background:#f2f5fa;border-left:4px solid #48658b}td,th{padding:10px;border-bottom:1px solid #ddd;overflow-wrap:anywhere}table{width:100%}pre{white-space:pre-wrap;overflow-wrap:anywhere}details{margin-top:24px}</style><h1>'+escape(title)+'</h1><p>'+escape(summary)+'</p>'+notice+table+'<h2>范围与缺口</h2>'+gaps+'<details><summary>完整输入绑定、结果及依据</summary><pre>'+escape(json.dumps(result,ensure_ascii=False,indent=2,allow_nan=False))+'</pre></details></html>'
+    return '<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+escape(title)+'</title><style>body{max-width:960px;margin:32px auto;padding:0 20px;font:17px/1.7 system-ui;color:#203047}aside{padding:12px 16px;background:#f2f5fa;border-left:4px solid #48658b}td,th{padding:10px;border-bottom:1px solid #ddd;overflow-wrap:anywhere}table{width:100%}pre{white-space:pre-wrap;overflow-wrap:anywhere}details{margin-top:24px}.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}.card{padding:12px;border:1px solid #d9e2ec;border-radius:8px;background:#f4f7fa}.gap{background:#fff4d8;border-color:#e8c971}.conflict{background:#fff0ed}</style><h1>'+escape(title)+'</h1><p>'+escape(summary)+'</p>'+cards+notice+table+argument_html+'<h2>范围与缺口</h2>'+gaps+'<details><summary>完整输入绑定、结果及依据</summary><pre>'+escape(json.dumps(result,ensure_ascii=False,indent=2,allow_nan=False))+'</pre></details></html>'
 
 def publish(spec,result,out,title):
     out=Path(out).absolute()

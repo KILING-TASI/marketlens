@@ -1,15 +1,15 @@
 ---
 name: marketlens
-description: 分析中国股票、ETF和政策相关的市场叙事，识别行情异常、资金活动分歧和公告证据缺口；用户问“这消息可信吗”“是谁在买”“回购兑现了吗”“指数涨为何多数不涨”或要求市场噪音分析时使用。支持已有资料与本地数据，不执行交易。
+description: 分析中国股票、ETF和政策相关的市场叙事，识别行情异常、资金活动分歧和公告证据缺口；用户问“这消息可信吗”“是谁在买”“回购兑现了吗”“指数涨为何多数不涨”或要求市场噪音分析时使用。支持已有资料与本地数据，先给证据支持的限定结论；关联状态不认证消息真伪，不执行交易。
 metadata:
-  version: 0.3.4
-  short-description: 市场明镜 市场噪音识别与证据分析
+  version: 0.3.5
+  short-description: 市场明镜 市场消息与证据分析
 license: MIT
 ---
 
 # 市场明镜 MarketLens
 
-正式名称：市场噪音识别与证据分析系统 / Market Noise Detection and Evidence Analysis System。用自然语言回答用户的问题，不要求用户选模块或填写JSON。先说目前能判断什么，再解释依据、竞争解释和改变判断所需的证据。
+正式名称：市场消息与证据分析 / Market Message and Evidence Analysis。用自然语言回答用户的问题，不要求用户选模块或填写JSON。先说目前能判断什么，再解释依据、竞争解释和改变判断所需的证据。
 
 ## 按问题取用资源
 
@@ -60,3 +60,12 @@ license: MIT
 ## 安装与结果状态
 
 本仓可以单独安装；pip安装命令行包不等于在助手中注册Skill。按本仓README安装完整资源，再使用SKILL中的入口。结果生成、资料取得与原文核验分别解释；未知说明影响及补齐路径。原创代码MIT，第三方代码保留许可，公告、研报和数据不随代码许可转移权利。
+
+
+## 论证、竞争解释与理论
+
+需要明确“凭什么、适用到哪里、什么会改变判断”时，读取[论证结构](references/argument-structure.md)，用`marketlens arguments review`；旧claim-evidence/1继续兼容。需要比较2至5种竞争解释时读[竞争解释](references/competing-hypotheses.md)，用`marketlens hypotheses review`。不为简单问题强制造多种解释；解释集未证明穷尽或互斥。
+
+提出者、提出时间、复核者、复核依据和时间分别声明。AI或人工提出的未复核关联单列，不填写虚构审核人或为省事把建议全部改成reviewed。复核记录不自动认证人员身份或原文含义；有支持材料可以给限定结论，缺资料不能给否定事实，更不能把程序输出当作整体真伪认证或可信概率。
+
+理论只在能改变核对问题时按需读[统一来源表](references/theory-sources.md)和[偏差核对](references/bias-catalog.md)。国内政策、担保及制度版本问题读[国内核对](references/cn-institution-checks.md)。书目引用不升级证据，不据社会学或文化心理学推断匿名主体、个人动机或市场拐点；原文与实际执行资料仍须另核。

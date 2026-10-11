@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "marketlens"
-version = "0.3.4"
-description = "独立研究工具与完整资源；未知证据保留"
+version = "0.3.5"
+description = "市场消息与证据分析：支持范围、竞争解释与可复查的论证结构"
 readme = "README.md"
 requires-python = ">=3.10"
 license = "MIT"

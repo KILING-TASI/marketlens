@@ -5,3 +5,6 @@
 先安装本仓，再运行 `--help`。源码未安装时，脚本仓用 `python scripts/脚本名.py`；组合仓用本仓安装后的 `python -m`。教学输入在 `examples/expansion-teaching`（如有）；教学网址、摘要和数值不能当成真实公告来源。
 
 每次保存输入、结果、HTML和摘要记录。成功退出0；缺资料/口径不一致/重复输出退出2。先读报告结论和范围，再展开完整结果。使用范围以本仓说明和输入要求为准，不代表正式审计、合规审批、实时执行、TA或CRM就绪。
+
+
+新增本仓独立`arguments review`与`hypotheses review`，对应版本化论证和定性竞争解释；并登记中外来源与国内制度核对清单。旧接口不自动改算法，详见USAGE及references/argument-structure.md。

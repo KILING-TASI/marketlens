@@ -1,0 +1,272 @@
+{
+  "methodVersion": "claim-evidence/2",
+  "question": "项目是否全部完成？",
+  "status": "needs-review",
+  "records": [
+    {
+      "id": "completion",
+      "text": "项目已全部完成",
+      "subjectId": "demo",
+      "referencePeriod": "2026-Q3",
+      "links": [
+        {
+          "evidenceId": "announcement",
+          "relation": "partial",
+          "rationale": "摘录仅表示部分完成"
+        }
+      ],
+      "status": "partial-only",
+      "admitted": [
+        {
+          "evidenceId": "announcement",
+          "relation": "partial",
+          "rationale": "摘录仅表示部分完成",
+          "source": "https://example.org/notice",
+          "locator": "第1页",
+          "sourceVersion": "1",
+          "rawSourceSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "excerpt": "教学声明，仅完成部分项目。",
+          "originalVerified": false,
+          "binding": {
+            "origin": "human",
+            "proposedBy": "教学整理者",
+            "proposedAt": "2026-10-10T12:00:00+08:00",
+            "status": "reviewed",
+            "reviewedBy": "教学复核者",
+            "reviewedAt": "2026-10-11T12:00:00+08:00",
+            "reviewBasis": "原创模拟摘录与声明范围对照；不是真实原文核验"
+          },
+          "reviewIdentityVerified": false
+        }
+      ],
+      "excluded": [],
+      "sourceArtifactGroups": [
+        [
+          "announcement"
+        ]
+      ],
+      "independenceVerified": false,
+      "originalVerified": false,
+      "judgment": "只有局部支持，不能推广至整条消息",
+      "argument": {
+        "warrant": {
+          "text": "公告摘录只说明部分进展，不能推广为全部完成",
+          "reason": null
+        },
+        "qualifier": {
+          "text": "限本次声明的主体、期间和披露范围",
+          "reason": null
+        },
+        "falsifier": {
+          "text": null,
+          "reason": "尚未取得完整执行范围及相应更正材料"
+        },
+        "theoryIds": [
+          "TOULMIN-ARG",
+          "MOHIST-THREE"
+        ]
+      },
+      "proposedOrDeferredLinks": [],
+      "argumentSemanticsVerified": false
+    },
+    {
+      "id": "rumor",
+      "text": "项目已确定带来额外收入",
+      "subjectId": "demo",
+      "referencePeriod": "2026-Q3",
+      "links": [],
+      "status": "insufficient",
+      "admitted": [],
+      "excluded": [],
+      "sourceArtifactGroups": [],
+      "independenceVerified": false,
+      "originalVerified": false,
+      "judgment": "缺少可纳入的直接证据",
+      "argument": {
+        "warrant": {
+          "text": null,
+          "reason": "未提供收入确认、合同或财报资料，无法说明收入结论的推理依据"
+        },
+        "qualifier": {
+          "text": "限本次声明的主体、期间和披露范围",
+          "reason": null
+        },
+        "falsifier": {
+          "text": null,
+          "reason": "尚未取得完整执行范围及相应更正材料"
+        },
+        "theoryIds": [
+          "TOULMIN-ARG",
+          "MOHIST-THREE"
+        ]
+      },
+      "proposedOrDeferredLinks": [],
+      "argumentSemanticsVerified": false
+    },
+    {
+      "id": "conflict",
+      "text": "项目没有任何进展",
+      "subjectId": "demo",
+      "referencePeriod": "2026-Q3",
+      "links": [
+        {
+          "evidenceId": "announcement",
+          "relation": "contradicts",
+          "rationale": "摘录表示部分完成；仍需确认原文含义"
+        }
+      ],
+      "status": "declared-counterevidence",
+      "admitted": [
+        {
+          "evidenceId": "announcement",
+          "relation": "contradicts",
+          "rationale": "摘录表示部分完成；仍需确认原文含义",
+          "source": "https://example.org/notice",
+          "locator": "第1页",
+          "sourceVersion": "1",
+          "rawSourceSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "excerpt": "教学声明，仅完成部分项目。",
+          "originalVerified": false,
+          "binding": {
+            "origin": "human",
+            "proposedBy": "教学整理者",
+            "proposedAt": "2026-10-10T12:00:00+08:00",
+            "status": "reviewed",
+            "reviewedBy": "教学复核者",
+            "reviewedAt": "2026-10-11T12:00:00+08:00",
+            "reviewBasis": "原创模拟摘录与声明范围对照；不是真实原文核验"
+          },
+          "reviewIdentityVerified": false
+        }
+      ],
+      "excluded": [],
+      "sourceArtifactGroups": [
+        [
+          "announcement"
+        ]
+      ],
+      "independenceVerified": false,
+      "originalVerified": false,
+      "judgment": "有声明反对材料，仍需核原文",
+      "argument": {
+        "warrant": {
+          "text": "声明摘录描述部分进展，与“没有任何进展”的绝对表述冲突；仍需核原文",
+          "reason": null
+        },
+        "qualifier": {
+          "text": "限本次声明的主体、期间和披露范围",
+          "reason": null
+        },
+        "falsifier": {
+          "text": null,
+          "reason": "尚未取得完整执行范围及相应更正材料"
+        },
+        "theoryIds": [
+          "TOULMIN-ARG",
+          "MOHIST-THREE"
+        ]
+      },
+      "proposedOrDeferredLinks": [],
+      "argumentSemanticsVerified": false
+    }
+  ],
+  "evidenceReview": {
+    "methodVersion": "evidence-status/1",
+    "question": "项目是否全部完成？",
+    "conclusion": "原创教学样本，非真实研究结论。本次 1 项资料中，0 项存在缺口或时点限制。资料状态完整不代表问题已得到可靠答案。",
+    "status": "ready-for-review",
+    "records": [
+      {
+        "id": "announcement",
+        "status": "available",
+        "reason": "教学原文",
+        "source": "https://example.org/notice",
+        "locator": "第1页",
+        "sourceVersion": "1",
+        "publishedDate": "2026-10-01",
+        "acquiredAt": "2026-10-02T12:00:00+08:00",
+        "rawSourceSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "dataDate": "2026-10-01",
+        "valueType": "disclosed",
+        "subjectId": "demo",
+        "referencePeriod": "2026-Q3",
+        "excerpt": "教学声明，仅完成部分项目。",
+        "reviewStatus": "available",
+        "sourceVerified": false
+      }
+    ],
+    "humanRows": [
+      [
+        "announcement",
+        "资料已取得，原文未自动核实；教学原文"
+      ]
+    ],
+    "limitations": [
+      "不联网重试、不认证原文；摘要只绑定声明资料",
+      "新鲜度窗口由输入声明，不是统一投资标准",
+      "失败、空表、未授权和未知不补成零；截止后资料不支持历史判断"
+    ]
+  },
+  "conclusion": "原创教学资料。本次核对3条主张，1条只有局部支持，0条只有背景，0条存在声明冲突；另有0项建议或截止后关联未纳入判断。直接支持也仅限所声明对象与期间，原文仍需核查。",
+  "humanRows": [
+    [
+      "项目已全部完成",
+      "只有局部支持，不能推广至整条消息；纳入1项、排除0项"
+    ],
+    [
+      "项目已确定带来额外收入",
+      "缺少可纳入的直接证据；纳入0项、排除0项"
+    ],
+    [
+      "项目没有任何进展",
+      "有声明反对材料，仍需核原文；纳入1项、排除0项"
+    ]
+  ],
+  "limitations": [
+    "资料关系由输入者逐条声明，程序检查时点、对象、期间和绑定；不自动理解原文含义",
+    "原文摘录和文件摘要均为声明，未在本次读取原始文件或认证发布机构",
+    "同一文件摘要的转载合并显示；不同摘要也不证明来源独立，不能数票或输出可信概率",
+    "背景、估算、代理和局部支持不能证明整条消息；更正版本须重新提供资料并人工确认",
+    "消息成立不等于价格已低估、收益确定或可以交易；失败和未知不补成否定事实",
+    "论证依据、限定和推翻条件由输入者声明；字段完整不认证推理或结论",
+    "关联复核者和依据是声明记录，程序不认证人员身份或其实际复核行为",
+    "AI或人工提出的待复核建议单列，不纳入证据状态，不数票、不排序、不生成可信概率"
+  ],
+  "statusCounts": {
+    "conflicting": 0,
+    "declared-support": 0,
+    "declared-counterevidence": 1,
+    "partial-only": 1,
+    "context-only": 0,
+    "insufficient": 1
+  },
+  "proposedOrDeferredCount": 0,
+  "theorySources": [
+    {
+      "id": "TOULMIN-ARG",
+      "author": "Stephen Toulmin",
+      "title": "The Uses of Argument",
+      "edition": "1958；2003更新版",
+      "sourceUrl": "https://www.cambridge.org/core/books/uses-of-argument/contents/F51790411BD09371D7AF5100839440EA",
+      "verificationScope": "publisher-bibliography",
+      "checkQuestion": "哪一步把资料连接到主张？适用限定和反驳条件是什么？",
+      "cannotReplace": "结构完整不等于论证成立；warrant本身仍需依据。",
+      "checkedAt": "2026-10-11"
+    },
+    {
+      "id": "MOHIST-THREE",
+      "author": "《墨子》",
+      "title": "非命上：本、原、用三表",
+      "edition": "先秦；电子底本见来源",
+      "sourceUrl": "https://ctext.org/mozi/anti-fatalism-i/ens",
+      "verificationScope": "primary-passage-checked",
+      "checkQuestion": "依据是先例、直接观察还是对结果的评价？三者是否混同？",
+      "cannotReplace": "古代提问框架，不是现代证据等级或中国现行法律依据，不能逐级对应E0–E4。",
+      "checkedAt": "2026-10-11"
+    }
+  ],
+  "theoryRegistrySha256": "2ec9446efb3026a0b339692b5117d1f01885449c2a0b7ffe2845ffda253ee2ce",
+  "inputSha256": "96e79ad2f30f9a291c29d9e315ad58b0a0c67ffe74f8ea5d7583e80f85c7e39c",
+  "executionStatus": "completed",
+  "evidenceCertification": "not-performed-by-report-writer"
+}

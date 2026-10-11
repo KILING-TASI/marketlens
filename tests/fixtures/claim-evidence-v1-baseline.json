@@ -1,0 +1,218 @@
+{
+  "input": {
+    "inputSchema": "claim-evidence/1",
+    "evidence": {
+      "inputSchema": "evidence-status/1",
+      "sampleType": "teaching",
+      "question": "项目是否全部完成？",
+      "asOfDate": "2026-10-11",
+      "asOf": "2026-10-11T23:59:59+08:00",
+      "maxAgeDays": 30,
+      "records": [
+        {
+          "id": "announcement",
+          "status": "available",
+          "reason": "教学原文",
+          "source": "https://example.org/notice",
+          "locator": "第1页",
+          "sourceVersion": "1",
+          "publishedDate": "2026-10-01",
+          "acquiredAt": "2026-10-02T12:00:00+08:00",
+          "rawSourceSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "dataDate": "2026-10-01",
+          "valueType": "disclosed",
+          "subjectId": "demo",
+          "referencePeriod": "2026-Q3",
+          "excerpt": "教学声明，仅完成部分项目。"
+        }
+      ]
+    },
+    "claims": [
+      {
+        "id": "completion",
+        "text": "项目已全部完成",
+        "subjectId": "demo",
+        "referencePeriod": "2026-Q3",
+        "links": [
+          {
+            "evidenceId": "announcement",
+            "relation": "partial",
+            "rationale": "摘录仅表示部分完成"
+          }
+        ]
+      },
+      {
+        "id": "rumor",
+        "text": "项目已确定带来额外收入",
+        "subjectId": "demo",
+        "referencePeriod": "2026-Q3",
+        "links": []
+      },
+      {
+        "id": "conflict",
+        "text": "项目没有任何进展",
+        "subjectId": "demo",
+        "referencePeriod": "2026-Q3",
+        "links": [
+          {
+            "evidenceId": "announcement",
+            "relation": "contradicts",
+            "rationale": "摘录表示部分完成；仍需确认原文含义"
+          }
+        ]
+      }
+    ]
+  },
+  "result": {
+    "methodVersion": "claim-evidence/1",
+    "question": "项目是否全部完成？",
+    "status": "needs-review",
+    "records": [
+      {
+        "id": "completion",
+        "text": "项目已全部完成",
+        "subjectId": "demo",
+        "referencePeriod": "2026-Q3",
+        "links": [
+          {
+            "evidenceId": "announcement",
+            "relation": "partial",
+            "rationale": "摘录仅表示部分完成"
+          }
+        ],
+        "status": "partial-only",
+        "admitted": [
+          {
+            "evidenceId": "announcement",
+            "relation": "partial",
+            "rationale": "摘录仅表示部分完成",
+            "source": "https://example.org/notice",
+            "locator": "第1页",
+            "sourceVersion": "1",
+            "rawSourceSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "excerpt": "教学声明，仅完成部分项目。",
+            "originalVerified": false
+          }
+        ],
+        "excluded": [],
+        "sourceArtifactGroups": [
+          [
+            "announcement"
+          ]
+        ],
+        "independenceVerified": false,
+        "originalVerified": false,
+        "judgment": "只有局部支持，不能推广至整条消息"
+      },
+      {
+        "id": "rumor",
+        "text": "项目已确定带来额外收入",
+        "subjectId": "demo",
+        "referencePeriod": "2026-Q3",
+        "links": [],
+        "status": "insufficient",
+        "admitted": [],
+        "excluded": [],
+        "sourceArtifactGroups": [],
+        "independenceVerified": false,
+        "originalVerified": false,
+        "judgment": "缺少可纳入的直接证据"
+      },
+      {
+        "id": "conflict",
+        "text": "项目没有任何进展",
+        "subjectId": "demo",
+        "referencePeriod": "2026-Q3",
+        "links": [
+          {
+            "evidenceId": "announcement",
+            "relation": "contradicts",
+            "rationale": "摘录表示部分完成；仍需确认原文含义"
+          }
+        ],
+        "status": "declared-counterevidence",
+        "admitted": [
+          {
+            "evidenceId": "announcement",
+            "relation": "contradicts",
+            "rationale": "摘录表示部分完成；仍需确认原文含义",
+            "source": "https://example.org/notice",
+            "locator": "第1页",
+            "sourceVersion": "1",
+            "rawSourceSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "excerpt": "教学声明，仅完成部分项目。",
+            "originalVerified": false
+          }
+        ],
+        "excluded": [],
+        "sourceArtifactGroups": [
+          [
+            "announcement"
+          ]
+        ],
+        "independenceVerified": false,
+        "originalVerified": false,
+        "judgment": "有声明反对材料，仍需核原文"
+      }
+    ],
+    "evidenceReview": {
+      "methodVersion": "evidence-status/1",
+      "question": "项目是否全部完成？",
+      "conclusion": "原创教学样本，非真实研究结论。本次 1 项资料中，0 项存在缺口或时点限制。资料状态完整不代表问题已得到可靠答案。",
+      "status": "ready-for-review",
+      "records": [
+        {
+          "id": "announcement",
+          "status": "available",
+          "reason": "教学原文",
+          "source": "https://example.org/notice",
+          "locator": "第1页",
+          "sourceVersion": "1",
+          "publishedDate": "2026-10-01",
+          "acquiredAt": "2026-10-02T12:00:00+08:00",
+          "rawSourceSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "dataDate": "2026-10-01",
+          "valueType": "disclosed",
+          "subjectId": "demo",
+          "referencePeriod": "2026-Q3",
+          "excerpt": "教学声明，仅完成部分项目。",
+          "reviewStatus": "available",
+          "sourceVerified": false
+        }
+      ],
+      "humanRows": [
+        [
+          "announcement",
+          "资料已取得，原文未自动核实；教学原文"
+        ]
+      ],
+      "limitations": [
+        "不联网重试、不认证原文；摘要只绑定声明资料",
+        "新鲜度窗口由输入声明，不是统一投资标准",
+        "失败、空表、未授权和未知不补成零；截止后资料不支持历史判断"
+      ]
+    },
+    "conclusion": "教学资料，非真实消息核验。3条主张中，3条缺少单向直接支持或存在冲突；即使有支持材料，本流程也未认证消息为真。",
+    "humanRows": [
+      [
+        "项目已全部完成",
+        "只有局部支持，不能推广至整条消息；纳入1项、排除0项"
+      ],
+      [
+        "项目已确定带来额外收入",
+        "缺少可纳入的直接证据；纳入0项、排除0项"
+      ],
+      [
+        "项目没有任何进展",
+        "有声明反对材料，仍需核原文；纳入1项、排除0项"
+      ]
+    ],
+    "limitations": [
+      "资料关系由输入者逐条声明，程序检查时点、对象、期间和绑定；不自动理解原文含义",
+      "原文摘录和文件摘要均为声明，未在本次读取原始文件或认证发布机构",
+      "同一文件摘要的转载合并显示；不同摘要也不证明来源独立，不能数票或输出可信概率",
+      "背景、估算、代理和局部支持不能证明整条消息；更正版本须重新提供资料并人工确认",
+      "消息成立不等于价格已低估、收益确定或可以交易；失败和未知不补成否定事实"
+    ]
+  }
+}

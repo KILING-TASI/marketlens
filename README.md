@@ -1,18 +1,22 @@
 # 市场明镜 MarketLens
 
-核查市场消息、公告执行与样本观察，区分事实、推断和证据缺口。
+核对市场消息的依据、推断和证据缺口，说明哪些判断有支持、适用到哪里，以及什么新资料会改变判断。
 
-[![原创代码 MIT](https://img.shields.io/badge/原创代码-MIT-green)](LICENSE) · [当前发行版 v0.3.4](https://github.com/KILING-TASI/marketlens/releases/tag/v0.3.4) · [运行检查](https://github.com/KILING-TASI/marketlens/actions)
+[![原创代码 MIT](https://img.shields.io/badge/原创代码-MIT-green)](LICENSE) · [当前发行版 v0.3.5](https://github.com/KILING-TASI/marketlens/releases/tag/v0.3.5) · [运行检查](https://github.com/KILING-TASI/marketlens/actions)
 
 ## 能解决什么问题
 
 **这消息可信吗？回购兑现了吗？指数涨，为什么多数股票没涨？**
 
-独立维护市场叙事与证据核查；工作台提供问题导航，导航不代表已经集成全部调用。
+市场明镜独立维护消息、市场观察和证据分析；工作台组织研究并按需薄调用。先给证据能够支持的限定结论，再解释支持、反对、局部支持、背景和未知；软件状态不替代原文核验。
+
+新增[论证结构](references/argument-structure.md)、[竞争解释](references/competing-hypotheses.md)和[中外理论来源](references/theory-sources.md)。AI建议关联与声明已复核关联分别记录，未复核建议不参与主张状态。
+
+[查看消息论证教学报告](references/examples/argument-preview/report.html)（下载完整源码后打开；教学数据，原文未认证）。
 
 ## 快速开始
 
-从[发行页](https://github.com/KILING-TASI/marketlens/releases/tag/v0.3.4)下载完整源码并解压，需要 Python 3.10 或以上。在源码目录执行：
+从[发行页](https://github.com/KILING-TASI/marketlens/releases/tag/v0.3.5)下载完整源码并解压，需要 Python 3.10 或以上。在源码目录执行：
 
 ```text
 python try_demo.py --no-open --out-dir reports/first-demo
@@ -57,6 +61,6 @@ marketlens --help
 
 [按问题选择其他工具](https://github.com/KILING-TASI/research-workbench/blob/main/references/tool-navigation.md)。共12个活跃仓，资料契约校验已并入[数据仓](https://github.com/KILING-TASI/cn-data-adapters/blob/main/CONTRACT_MIGRATION.md)。各仓分别发布；main的后续文档整理不改写旧发行包和冻结结果。
 
-## v0.3.4 本轮补强
+## v0.3.5 消息论证与竞争解释
 
-独立消息主张与证据对照，支持、反对、背景和局部支持分开；工作台通过薄接口调用。具体参数与边界见[使用说明](USAGE.md)。
+保留旧消息对照入口；新增推理依据、适用限定、推翻条件、提出与复核记录及定性竞争解释矩阵。新报告第一屏展示六类证据状态，来源和未知一起阅读。参见[使用说明](USAGE.md)。

@@ -1,0 +1,111 @@
+{
+  "inputSchema": "competing-hypotheses/1",
+  "evidence": {
+    "inputSchema": "evidence-status/1",
+    "sampleType": "teaching",
+    "question": "项目是否全部完成？",
+    "asOfDate": "2026-10-11",
+    "asOf": "2026-10-11T23:59:59+08:00",
+    "maxAgeDays": 30,
+    "records": [
+      {
+        "id": "announcement",
+        "status": "available",
+        "reason": "教学原文",
+        "source": "https://example.org/notice",
+        "locator": "第1页",
+        "sourceVersion": "1",
+        "publishedDate": "2026-10-01",
+        "acquiredAt": "2026-10-02T12:00:00+08:00",
+        "rawSourceSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "dataDate": "2026-10-01",
+        "valueType": "disclosed",
+        "subjectId": "demo",
+        "referencePeriod": "2026-Q3",
+        "excerpt": "教学声明，仅完成部分项目。"
+      }
+    ]
+  },
+  "hypotheses": [
+    {
+      "id": "completion",
+      "text": "项目已全部完成",
+      "subjectId": "demo",
+      "referencePeriod": "2026-Q3",
+      "links": [
+        {
+          "evidenceId": "announcement",
+          "relation": "partial",
+          "rationale": "摘录仅表示部分完成",
+          "binding": {
+            "origin": "human",
+            "proposedBy": "教学整理者",
+            "proposedAt": "2026-10-10T12:00:00+08:00",
+            "status": "reviewed",
+            "reviewedBy": "教学复核者",
+            "reviewedAt": "2026-10-11T12:00:00+08:00",
+            "reviewBasis": "原创模拟摘录与声明范围对照；不是真实原文核验"
+          }
+        }
+      ],
+      "argument": {
+        "warrant": {
+          "text": "公告摘录只说明部分进展，不能推广为全部完成",
+          "reason": null
+        },
+        "qualifier": {
+          "text": "限本次声明的主体、期间和披露范围",
+          "reason": null
+        },
+        "falsifier": {
+          "text": null,
+          "reason": "尚未取得完整执行范围及相应更正材料"
+        },
+        "theoryIds": [
+          "TOULMIN-ARG",
+          "MOHIST-THREE"
+        ]
+      }
+    },
+    {
+      "id": "alternative",
+      "text": "现有片段可能只说明分阶段执行，完整范围仍待取得",
+      "subjectId": "demo",
+      "referencePeriod": "2026-Q3",
+      "links": [
+        {
+          "evidenceId": "announcement",
+          "relation": "context",
+          "rationale": "同一材料仅用于解释可能的其他范围，不声明其为真实结论",
+          "binding": {
+            "origin": "human",
+            "proposedBy": "教学整理者",
+            "proposedAt": "2026-10-10T12:00:00+08:00",
+            "status": "reviewed",
+            "reviewedBy": "教学复核者",
+            "reviewedAt": "2026-10-11T12:00:00+08:00",
+            "reviewBasis": "原创模拟摘录与声明范围对照；不是真实原文核验"
+          }
+        }
+      ],
+      "argument": {
+        "warrant": {
+          "text": "公告摘录只说明部分进展，不能推广为全部完成",
+          "reason": null
+        },
+        "qualifier": {
+          "text": "限本次声明的主体、期间和披露范围",
+          "reason": null
+        },
+        "falsifier": {
+          "text": null,
+          "reason": "尚未取得完整执行范围及相应更正材料"
+        },
+        "theoryIds": [
+          "TOULMIN-ARG",
+          "MOHIST-THREE"
+        ]
+      }
+    }
+  ]
+}

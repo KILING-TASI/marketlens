@@ -113,3 +113,15 @@ python -m marketlens.claim_evidence review --input references/examples/claim-evi
 ```
 
 主张与原文材料逐条关联，分开显示直接支持、反对、局部支持和背景。对象、期间、截止或数值角色不符的材料排除；同一摘要转载合并显示，不数票判真。关系与摘录由输入声明，当前不自动理解或认证原文含义，不输出真假概率。示例是原创教学资料。
+
+
+## 消息论证与竞争解释（v0.3.5）
+
+```text
+marketlens arguments review --input references/examples/argument-teaching.json --out-dir reports/argument-new
+marketlens hypotheses review --input references/examples/hypotheses-teaching.json --out-dir reports/hypotheses-new
+```
+
+两项都可独立安装运行，仅使用标准库及已声明资料；教学网址和摘录为原创模拟资料，不能当真实消息。旧`claims review`继续接收claim-evidence/1，并可按新schema路由v2。字段准备见[论证结构](references/argument-structure.md)，矩阵和范围见[竞争解释](references/competing-hypotheses.md)。
+
+新报告先显示限定结论和六类证据状态，再看论证限定、待复核建议及完整底稿。数量不是可信度，理论IDs只绑定[书目目录](references/theory-sources.md)，不改变状态。旧结果不覆盖；未复核或截止后关联不纳入判断。政策、担保与制度变更按[国内核对问题](references/cn-institution-checks.md)准备原文、适用条件和未知，不让理论替代规则。

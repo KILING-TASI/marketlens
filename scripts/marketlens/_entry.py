@@ -86,12 +86,17 @@ def main(argv=None):
         if hasattr(stream, 'reconfigure'):
             stream.reconfigure(encoding='utf-8')
     args = list(sys.argv[1:] if argv is None else argv)
+    if args and args[0] in ('arguments','hypotheses'):
+        from importlib import import_module
+        module=import_module('.argument_review' if args[0]=='arguments' else '.competing_hypotheses',__package__)
+        return module.main(args[1:])
     if args and args[0] == 'claims':
         from .claim_evidence import main as claims_main
         return claims_main(args[1:])
     if args and args[0] == "doctor":return doctor(args[1:])
     if not args or args in [['--help'], ['-h']]:
-        print(REPO + '：独立研究工具。')
+        print(REPO + '：市场消息与证据分析。')
+        print('消息论证：arguments review；竞争解释：hypotheses review；旧证据关联：claims review。')
         print('教学试用：' + REPO + ' demo --out-dir reports/demo --auto-name')
         print('原生入口：' + REPO + ' run --help（原有参数与计算口径保留）')
         if MODE == 'script':

@@ -8,7 +8,7 @@ LABELS = {'conflicting': '支持与反对材料并存，不能按票数判真', 
           'context-only': '只有背景资料，不能证明消息', 'insufficient': '缺少可纳入的直接证据'}
 
 
-def review(spec):
+def _review_v1(spec):
     if not isinstance(spec, dict) or spec.get('inputSchema') != 'claim-evidence/1' or set(spec) != {'inputSchema', 'evidence', 'claims'}:
         raise ValueError('须为claim-evidence/1，提供资料状态与逐条主张')
     evidence = availability(spec['evidence']); records = {r['id']: r for r in evidence['records']}
@@ -55,6 +55,13 @@ def review(spec):
                             '同一文件摘要的转载合并显示；不同摘要也不证明来源独立，不能数票或输出可信概率',
                             '背景、估算、代理和局部支持不能证明整条消息；更正版本须重新提供资料并人工确认',
                             '消息成立不等于价格已低估、收益确定或可以交易；失败和未知不补成否定事实']}
+
+
+def review(spec):
+    if isinstance(spec,dict) and spec.get('inputSchema')=='claim-evidence/2':
+        from .argument_review import review as review_v2
+        return review_v2(spec)
+    return _review_v1(spec)
 
 
 def main(argv=None):

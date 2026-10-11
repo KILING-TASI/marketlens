@@ -12,9 +12,9 @@
     },
     {
       "localPath": "scripts/marketlens/review_io.py",
-      "normalizedTextSha256": "e6624c10adbd93ee546fa1584bc5e7ffeb1b79e6dda2e3247c2bbd534f059e6d",
-      "canonicalRepository": "cn-data-adapters",
-      "canonicalPath": "cn_data_adapters/review_io.py",
+      "normalizedTextSha256": "3c8c93dd1adc579a3a9d5a2b28e3822c55d8ff0f2e86b42cdc8dd7cef386388d",
+      "canonicalRepository": "marketlens",
+      "canonicalPath": "scripts/marketlens/review_io.py",
       "syncPolicy": "fixed-with-distribution; review and regenerate manifest before replacing; no runtime source dependency",
       "licenseScope": "see repository third-party notices; inventory does not grant rights"
     },

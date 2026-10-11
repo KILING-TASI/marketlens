@@ -19,3 +19,7 @@ Use a new output directory. Teaching data is synthetic; successful software exec
 Each repository works independently; optional cross-repository calls need explicit configuration. Missing evidence stays unknown. No trade execution, profit guarantee, or institutional compliance certification is provided. Original code is MIT; third-party licenses and source-data rights remain separate. Do not redistribute source documents or data solely because the software uses MIT.
 
 [Chinese overview](README.md) · [Detailed commands](USAGE.md) · [Input preparation](BEGINNER.md) · [Version history](CHANGELOG.md).
+
+## Message arguments and competing explanations
+
+Use `marketlens arguments review` for claim-evidence/2 and `marketlens hypotheses review` for qualitative competing-hypotheses/1. Proposed and declared-reviewed bindings remain separate. Theory references organize questions; they do not certify sources, establish legal effects, rank explanations, or generate confidence probabilities. Legacy claim-evidence/1 remains supported.
