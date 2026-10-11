@@ -23,3 +23,7 @@ Each repository works independently; optional cross-repository calls need explic
 ## Message arguments and competing explanations
 
 Use `marketlens arguments review` for claim-evidence/2 and `marketlens hypotheses review` for qualitative competing-hypotheses/1. Proposed and declared-reviewed bindings remain separate. Theory references organize questions; they do not certify sources, establish legal effects, rank explanations, or generate confidence probabilities. Legacy claim-evidence/1 remains supported.
+
+## Original artifact checks (0.4.0)
+
+`sources fetch` explicitly downloads public HTTPS artifacts. `sources scaffold` hashes selected local bytes; `sources review` checks exact excerpts and optional PDF page locations. Signed disclosure metrics remain distinct from cumulative transaction cash. PDF extraction is optional (`marketlens[pdf]`); no OCR or automatic installation. Read, hash, location, declared relationship and semantic review are separate. See [source workflow](references/source-verification.md).

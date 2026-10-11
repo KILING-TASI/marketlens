@@ -137,7 +137,7 @@ class NarrativeRound(unittest.TestCase):
         old=fact(amount_cny=200000000)
         correction=fact(id="correction",amount_cny=20000000,available_at="2026-10-08T17:30:00+08:00",verified_at="2026-10-08T17:40:00+08:00",supersedes=["e1"])
         r=analyze(story([old,correction],[claim(amount_cny=20000000)]))
-        self.assertEqual(r["claims"][0]["status"],"在证据范围内有支持")
+        self.assertEqual(r["claims"][0]["status"],"按声明资料在范围内支持（原文与语义未由程序认证）")
         self.assertEqual(r["superseded_evidence_ids"],["e1"])
         before=analyze(story([old,correction],[claim(amount_cny=200000000)],as_of="2026-10-08T17:20:00+08:00"))
         self.assertEqual(before["claims"][0]["support_ids"],["e1"])

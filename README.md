@@ -64,3 +64,16 @@ marketlens --help
 ## v0.3.5 消息论证与竞争解释
 
 保留旧消息对照入口；新增推理依据、适用限定、推翻条件、提出与复核记录及定性竞争解释矩阵。新报告第一屏展示六类证据状态，来源和未知一起阅读。参见[使用说明](USAGE.md)。
+
+## 独立原文核对（v0.4.0）
+
+先取得原文，再核对摘要、完整摘录、定位、版本和反证。支持带符号的公告指标与预告偏离提示，仅读取和核查不代表认证真伪。
+
+| 要解决的问题 | 入口 |
+|---|---|
+| 只有公开原文链接 | `marketlens sources fetch --url HTTPS地址 --out-dir 新目录` |
+| 已有原文件，需要准备输入 | `marketlens sources scaffold --source 原文件.md --out input.json` |
+| 核对原文与公告指标 | `marketlens sources review --input input.json --out-dir 新目录` |
+| 查看独立教学流程 | `python scripts/run.py sources review --input references/examples/source-announcement.json --out-dir 新目录` |
+
+完整说明见[原始资料核对](references/source-verification.md)。PDF可选组件、失败原因、相对路径及未核事项分别说明；不要求其他仓库。

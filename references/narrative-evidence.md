@@ -25,3 +25,5 @@
 昨日截止排除今日才公开的披露。复现原确认状态还需当时已审核；重建当时公开信息可事后核验早已公开的原文，但注明事后核验，不等于恢复原决策。公开、下载、核验各有时刻。更正/终止更新事件状态，不抹去历史版本；只有正式更正引用能替代指定旧值，不能用负差额编造卖出。日期未知不猜。法规则按有效版本；公开资料不恢复强平、雪球敲入或真实账户。
 
 结构化检查输入：`as_of`、可选`scenario`、`claims`、`evidence`。`replay_mode`默认confirmed_state，重建公开信息用public_information。主张字段：id、type（actor_execution / holdings / plan / business）、actor、scope，可选day、action、amount_cny。证据字段：id、source_type（execution / holdings / plan / business / indirect）、actor、scope、period_start、period_end、available_at（原文公开可用）、verified_at（核验时间）、source、quote、verified布尔；stage为executed / planned / holdings / business / indirect。verified是人工声明，不是脚本认证。scope按明确相同范围匹配。未知日期留空。假设标simulation:true。正式更正可用supersedes:[旧证据ID]，仅替代同主体、范围、类型且时间更早的记录；引用或重复报道不能自行撤回旧证据。
+
+E0是资料分类，不进入需要明确主体的事件执行表。未知主体传闻可在sources流程留档并保留未知，不能伪装E1或填造主体。否认关联优先使用arguments或sources的contradicts；supersedes只用于符合条件的更正，不撤销传言历史。

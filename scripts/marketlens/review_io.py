@@ -12,7 +12,8 @@ def day(value):
 
 def instant(value):
     if not isinstance(value,str):raise ValueError('取得/截止时间须含时区')
-    d=datetime.fromisoformat(value.replace('Z','+00:00'))
+    try: d=datetime.fromisoformat(value.replace('Z','+00:00'))
+    except (ValueError,TypeError,AttributeError): raise ValueError('时间须为ISO格式，例如2026-10-10T20:00:00+08:00')
     if d.tzinfo is None:raise ValueError('时间须含时区')
     return d
 
@@ -57,7 +58,18 @@ def render(result,title):
     cards=''
     if any(counts.values()):
         cards='<h2>主张的证据状态</h2><p>数量是主张分类，不是可信度、胜率或来源独立性。</p><div class="cards">'+''.join('<div class="card '+('gap' if k in ('partial-only','context-only') else 'conflict' if k=='conflicting' else '')+'"><strong>'+escape(v)+'</strong><div>'+str(counts[k])+' 条</div></div>' for k,v in labels.items())+'</div>'
-    structured=[];pending=[]
+    structured=[];pending=[];evidence_rows=[]
+    for record in records:
+        if not isinstance(record,dict): continue
+        groups=record.get('sourceArtifactGroups',[])
+        evidence_rows.append((record.get('text','主张'),f"纳入{len(record.get('admitted',[]))}项，按声明摘要分为{len(groups)}组；未认证来源独立性"))
+        for kind in ('admitted','excluded'):
+            for link in record.get(kind,[]):
+                evidence_rows.append((str(link.get('evidenceId'))+' · '+('纳入' if kind=='admitted' else '未纳入'),str(link.get('source'))+'；定位：'+str(link.get('locator'))+'；声明关系：'+str(link.get('relation'))+'；理由：'+str(link.get('rationale'))+'；排除原因：'+str(link.get('exclusion','无'))))
+                evidence_rows.append((str(link.get('evidenceId'))+' · 原文摘录',link.get('excerpt') or '摘录未知'))
+                if link.get('binding'): evidence_rows.append((str(link.get('evidenceId'))+' · 复核声明',json.dumps(link['binding'],ensure_ascii=False)+'；人员身份与实际复核行为未认证'))
+        from .source_review import alerts
+        for warning in alerts(record.get('text','')): evidence_rows.append(('措辞提示：'+str(warning['matched']),warning['question']+'关键词可能误报或漏报，不自动改判。'))
     for r in records:
         if not isinstance(r,dict):continue
         if isinstance(r.get('argument'),dict):
@@ -67,7 +79,7 @@ def render(result,title):
             pending.append((r['id']+' / '+link['evidenceId'],{'supports':'声明支持','contradicts':'声明反对','partial':'局部支持','context':'背景'}[link['relation']]+'；'+{'proposal-not-reviewed':'建议未复核','binding-after-cutoff':'关联晚于截止时点'}[link['exclusion']]+'；提出者：'+link['binding']['proposedBy']))
     def rows_table(items,heading):
         return '<h2>'+heading+'</h2><table>'+''.join('<tr><td>'+escape(str(a))+'</td><td>'+escape(str(b))+'</td></tr>' for a,b in items)+'</table>' if items else ''
-    argument_html=rows_table(structured,'声明的论证与未知事项')+rows_table(pending,'建议及未纳入的关联')
+    argument_html=rows_table(evidence_rows,'原文、关联与复核记录')+rows_table(structured,'声明的论证与未知事项')+rows_table(pending,'建议及未纳入的关联')
     notice='<aside role="note"><strong>计算已完成，证据仍需复查</strong><p>报告生成成功只表示所填输入通过本流程。请先看结论适用范围，再核对来源、期间、版本与排除项；缺口不能当作零。</p></aside>'
     return '<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+escape(title)+'</title><style>body{max-width:960px;margin:32px auto;padding:0 20px;font:17px/1.7 system-ui;color:#203047}aside{padding:12px 16px;background:#f2f5fa;border-left:4px solid #48658b}td,th{padding:10px;border-bottom:1px solid #ddd;overflow-wrap:anywhere}table{width:100%}pre{white-space:pre-wrap;overflow-wrap:anywhere}details{margin-top:24px}.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}.card{padding:12px;border:1px solid #d9e2ec;border-radius:8px;background:#f4f7fa}.gap{background:#fff4d8;border-color:#e8c971}.conflict{background:#fff0ed}</style><h1>'+escape(title)+'</h1><p>'+escape(summary)+'</p>'+cards+notice+table+argument_html+'<h2>范围与缺口</h2>'+gaps+'<details><summary>完整输入绑定、结果及依据</summary><pre>'+escape(json.dumps(result,ensure_ascii=False,indent=2,allow_nan=False))+'</pre></details></html>'
 

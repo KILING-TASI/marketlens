@@ -157,6 +157,13 @@ def verify(output, archive=None):
             before=hashlib.sha256((root/destination/'result.json').read_bytes()).hexdigest()
             run(['scripts/run.py',action,'review','--input','references/examples/'+example,'--out-dir',destination],2)
             assert hashlib.sha256((root/destination/'result.json').read_bytes()).hexdigest()==before
+        run(['scripts/run.py','sources','review','--input','references/examples/source-announcement.json','--out-dir','work/source-review'])
+        source_result=json.loads((root/'work/source-review/result.json').read_text(encoding='utf-8'))
+        assert source_result['sources'][0]['sourceRead'] and source_result['sources'][0]['excerptFound']
+        assert source_result['announcementMetrics'][1]['forecastComparison']['outside']
+        before=hashlib.sha256((root/'work/source-review/result.json').read_bytes()).hexdigest()
+        run(['scripts/run.py','sources','review','--input','references/examples/source-announcement.json','--out-dir','work/source-review'],2)
+        assert hashlib.sha256((root/'work/source-review/result.json').read_bytes()).hexdigest()==before
         evidence = {"scope": "directory/process isolation; host still contains other repositories",
                     "archive_sha256": digest, "archive_files": names, "dependencies": "Python standard library only; venv without pip",
                     "origins": origins, "commands": records, "notices": notices,

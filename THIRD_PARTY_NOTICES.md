@@ -53,3 +53,7 @@ contain them; it has not been rebuilt or replaced by this change. These reposito
 notices do not rewrite that historical archive or remove third-party restrictions.
 
 本轮新增研究复查、报告说明及合成教学为作者原创MIT；同作者随包通用I/O代码独立保留，不要求其他仓库安装。规则有限事实和来源链接不改变原文权利；未捆绑实际公告/研报PDF或私人账户资料。
+
+## Optional PDF extraction
+
+pypdf is an optional external dependency, distributed under BSD-3-Clause by its maintainers: https://github.com/py-pdf/pypdf/blob/main/LICENSE. Its code is not copied into this repository or wheel. Installation retains its own package license. Retrieved documents remain subject to their own rights.

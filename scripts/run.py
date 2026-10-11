@@ -76,6 +76,11 @@ def report(data):
     for e in data["evidence"]:
         status = "已执行披露在限定范围内确认" if e["execution_confirmed"] else "持仓披露在限定范围内确认" if e["holdings_confirmed"] else "未确认（待审核、时点受限或非执行证据）"
         lines += [f"- {e['actor']} / {e['scope']}：{e['stage']}，{e['level']}；{status}。原句：{e['quote']}。来源：{e['source']}，定位：{e['location']}。"]
+        lines += [f"  本事件共{e.get('version_count',1)}版；当前记录#{e['id']}。"]
+        if not e["execution_confirmed"] and not e["holdings_confirmed"]: lines += ["  未确认原因："+e.get("confirmation_reason","待核查")]
+        for question in e.get("review_questions",[]): lines += ["  核对提示："+question]
+        for old in e.get("version_history",[]):
+            lines += [f"  历史#{old['id']}：{old['stage']}；{old['published_at']}；原句：{old['quote']}；更正引用：{old.get('corrects_evidence_id')}。"]
     lines += ["", "## 使用边界", ""]+["- "+s for s in data["limitations"]]
     for issue in data["quality_issues"]:
         lines += [f"- 质量检查 {issue['code']}：{issue['message']}"]
@@ -96,11 +101,11 @@ def write_result(data, out):
 
 def main(argv=None):
     routed=list(sys.argv[1:] if argv is None else argv)
-    if routed and routed[0] in ('arguments','hypotheses','claims'):
+    if routed and routed[0] in ('arguments','hypotheses','claims','sources'):
         from marketlens._entry import main as professional_entry
         return professional_entry(routed)
 
-    parser = argparse.ArgumentParser(description="市场明镜：本地数据计算与证据检查")
+    parser = argparse.ArgumentParser(description="市场明镜：本地数据计算与证据检查", epilog="更多入口：sources scaffold / sources review；arguments review；hypotheses review；claims review。")
     sub = parser.add_subparsers(dest="command", required=True)
     template = sub.add_parser("template")
     kind_help = "market行情；fund基金份额/净值；financing融资买入/偿还/余额（不含完整两融或融券）；breadth成分收益/权重；sector主题成交与分母；calendar市场交易日历"

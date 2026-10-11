@@ -465,9 +465,19 @@ class Store:
         latest = {}
         for e in evidence:
             latest[e["event_id"]] = e
+        histories = {}
+        for old in evidence: histories.setdefault(old["event_id"], []).append(dict(old))
         for e in latest.values():
+            e["version_count"] = len(histories[e["event_id"]])
+            e["version_history"] = histories[e["event_id"]]
+            e["confirmation_reason"] = "累计金额倒退，待更正版本" if e.get("amount_conflict") else "复核未完成或晚于截止" if not e["review_visible"] else "仅为非执行或持仓类资料"
             e["execution_confirmed"] = bool(e["review_visible"] and e["level"] == "E3" and not e.get("amount_conflict"))
             e["holdings_confirmed"] = bool(e["review_visible"] and e["level"] == "E4")
+            e["review_questions"] = []
+            if e["stage"] == "完成" and any(w in e["quote"] for w in ("尚未", "未实施", "未完成")):
+                e["review_questions"].append("阶段声明为完成，但原句含未完成措辞；请核对引用与否定语境，不自动改判")
+            if any(other["event_id"] != e["event_id"] and all(other[k] == e[k] for k in ("actor", "scope", "kind")) and {other["stage"], e["stage"]} == {"完成", "进展"} for other in latest.values()):
+                e["review_questions"].append("同主体范围存在不同事件编号的完成与进展记录；核对是否重复登记，独立计划不能合并")
             e["identity_note"] = "只确认原文主体、范围和期间，未披露金额保持未知"
         selected_ids = sorted(r["_id"] for r in all_rows)
         manifest = {r["_batch"]: {"source": r["_source"], "sha256": r["_hash"]} for r in all_rows}

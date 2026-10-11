@@ -127,3 +127,16 @@ marketlens hypotheses review --input references/examples/hypotheses-teaching.jso
 新报告先显示限定结论和六类证据状态，再看论证限定、待复核建议及完整底稿。数量不是可信度，理论IDs只绑定[书目目录](references/theory-sources.md)，不改变状态。旧结果不覆盖；未复核或截止后关联不纳入判断。政策、担保与制度变更按[国内核对问题](references/cn-institution-checks.md)准备原文、适用条件和未知，不让理论替代规则。
 
 若只安装完整Skill源码、不装命令行包，可直接运行 `python scripts/run.py arguments review --input references/examples/argument-teaching.json --out-dir 新目录`；竞争解释将arguments换成hypotheses。两条源码路径也已纳入无pip的隔离验收。
+
+## 独立原文核对（v0.4.0）
+
+先取得原文，再核对摘要、完整摘录、定位、版本和反证。支持带符号的公告指标与预告偏离提示，仅读取和核查不代表认证真伪。
+
+| 要解决的问题 | 入口 |
+|---|---|
+| 只有公开原文链接 | `marketlens sources fetch --url HTTPS地址 --out-dir 新目录` |
+| 已有原文件，需要准备输入 | `marketlens sources scaffold --source 原文件.md --out input.json` |
+| 核对原文与公告指标 | `marketlens sources review --input input.json --out-dir 新目录` |
+| 查看独立教学流程 | `python scripts/run.py sources review --input references/examples/source-announcement.json --out-dir 新目录` |
+
+完整说明见[原始资料核对](references/source-verification.md)。PDF可选组件、失败原因、相对路径及未核事项分别说明；不要求其他仓库。

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "marketlens"
-version = "0.3.5"
+version = "0.4.0"
 description = "市场消息与证据分析：支持范围、竞争解释与可复查的论证结构"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -21,3 +21,6 @@ package-dir = {"marketlens" = "scripts/marketlens"}
 
 [tool.setuptools.data-files]
 "share/marketlens" = ["SHARED_CODE.json", "RIGHTS_INDEX.json", "CONTRIBUTING.md", "SECURITY.md", "LIFECYCLE.md"]
+
+[project.optional-dependencies]
+pdf = ["pypdf>=5,<7"]

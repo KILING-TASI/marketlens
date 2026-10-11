@@ -1,0 +1,65 @@
+{
+  "inputSchema": "source-review/1",
+  "sources": [
+    {
+      "id": "s1",
+      "file": "source-teaching.md",
+      "expectedSha256": "b8434f5b6a3df596d7e18d3058830a67374920081af4a65fcde45c905f751369",
+      "sourceUrl": null,
+      "publishedAt": null,
+      "page": null,
+      "excerpt": "董事会拟回购，尚未实施。"
+    }
+  ],
+  "claims": [
+    {
+      "id": "c1",
+      "text": "教学公司是否已经回购？",
+      "links": [
+        {
+          "sourceId": "s1",
+          "relation": "contradicts",
+          "rationale": "原文说尚未实施，限于这份教学资料的披露时点，不推断后续动作"
+        }
+      ]
+    }
+  ],
+  "announcementMetrics": [
+    {
+      "id": "p1",
+      "sourceId": "s1",
+      "subject": "原创教学公司",
+      "metric": "归母净利润",
+      "periodStart": "2026-01-01",
+      "periodEnd": "2026-03-31",
+      "publishedAt": "2026-03-20",
+      "basis": "合并",
+      "auditStatus": "未经审计",
+      "unit": "万元",
+      "currency": "CNY",
+      "disclosureType": "预告",
+      "value": null,
+      "lower": -5000,
+      "upper": -4000,
+      "corrects": null
+    },
+    {
+      "id": "a1",
+      "sourceId": "s1",
+      "subject": "原创教学公司",
+      "metric": "归母净利润",
+      "periodStart": "2026-01-01",
+      "periodEnd": "2026-03-31",
+      "publishedAt": "2026-04-15",
+      "basis": "合并",
+      "auditStatus": "未经审计",
+      "unit": "万元",
+      "currency": "CNY",
+      "disclosureType": "快报",
+      "value": -9000,
+      "lower": null,
+      "upper": null,
+      "corrects": null
+    }
+  ]
+}

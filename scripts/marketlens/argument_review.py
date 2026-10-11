@@ -67,7 +67,7 @@ def review(spec):
     result=_review_v1(dict(inputSchema='claim-evidence/1',evidence=spec['evidence'],claims=projected))
     counts={k:0 for k in LABELS};pending_count=0
     for row in result['records']:
-        meta=metadata[row['id']];row['argument']=meta['argument'];row['proposedOrDeferredLinks']=meta['pending'];pending_count+=len(meta['pending']);counts[row['status']]+=1
+        meta=metadata[row['id']];row['reviewProgress']='有待复核或截止后关联' if meta['pending'] else '仅记录已声明复核，人员身份未认证';row['argument']=meta['argument'];row['proposedOrDeferredLinks']=meta['pending'];pending_count+=len(meta['pending']);counts[row['status']]+=1
         for key in ('admitted','excluded'):
             for link in row[key]:link['binding']=meta['bindings'][link['evidenceId']];link['reviewIdentityVerified']=False
         row['argumentSemanticsVerified']=False

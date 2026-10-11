@@ -12,7 +12,7 @@
     },
     {
       "localPath": "scripts/marketlens/review_io.py",
-      "normalizedTextSha256": "3c8c93dd1adc579a3a9d5a2b28e3822c55d8ff0f2e86b42cdc8dd7cef386388d",
+      "normalizedTextSha256": "4cb7f99f50054af377cdc615a1f2485569aacfb733aed72a19dbd809d8706224",
       "canonicalRepository": "marketlens",
       "canonicalPath": "scripts/marketlens/review_io.py",
       "syncPolicy": "fixed-with-distribution; review and regenerate manifest before replacing; no runtime source dependency",
