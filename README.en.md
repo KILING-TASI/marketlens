@@ -4,7 +4,7 @@ Review supplied market observations, original documents and declared claim evide
 
 [中文说明](README.md) · [Release v0.5.2](https://github.com/KILING-TASI/marketlens/releases/tag/v0.5.2) · [Skill instructions](SKILL.md) · [Input preparation](BEGINNER.md)
 
-Current release: **regular release**. Python **3.10+**. Base runtime dependencies: none. Optional extras: `pdf`. See [USAGE.md](USAGE.md) for scope.
+Current release: **v0.5.2 · regular release**. Python **3.10+**. Base runtime dependencies: none. Optional extras: `pdf`. See [USAGE.md](USAGE.md) for scope.
 
 ## First run
 
