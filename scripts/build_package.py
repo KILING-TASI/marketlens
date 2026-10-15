@@ -8,7 +8,7 @@ def build(output):
     root = Path(__file__).resolve().parent.parent
     mandatory = ["SKILL.md", "LICENSE", "THIRD_PARTY_NOTICES.md",
                  "CONTRIBUTING.md", "SECURITY.md", "LIFECYCLE.md",
-                 "RIGHTS_INDEX.json", "SHARED_CODE.json"]
+                 "RIGHTS_INDEX.json", "SHARED_CODE.json", "PUBLIC_VALIDATION.json"]
     for name in mandatory:
         if not (root / name).is_file():
             raise ValueError(f"Required package file missing: {name}")
