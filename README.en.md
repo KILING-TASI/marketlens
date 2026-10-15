@@ -2,13 +2,13 @@
 
 Review supplied market observations, original documents and declared claim evidence. Explicit HTTPS download is available through `marketlens sources fetch`; downloaded bytes, quote matches and review declarations do not authenticate publishers or certify truth.
 
-[中文说明](README.md) · [Release v0.5.2](https://github.com/KILING-TASI/marketlens/releases/tag/v0.5.2) · [Skill instructions](SKILL.md) · [Input preparation](BEGINNER.md)
+[中文说明](README.md) · [Release v0.5.3](https://github.com/KILING-TASI/marketlens/releases/tag/v0.5.3) · [Skill instructions](SKILL.md) · [Input preparation](BEGINNER.md)
 
-Current release: **v0.5.2 · regular release**. Python **3.10+**. Base runtime dependencies: none. Optional extras: `pdf`. See [USAGE.md](USAGE.md) for scope.
+Current release: **v0.5.3 · regular release**. Python **3.10+**. Base runtime dependencies: none. Optional extras: `pdf`. See [USAGE.md](USAGE.md) for scope.
 
 ## First run
 
-Download the [complete source ZIP](https://github.com/KILING-TASI/marketlens/releases/download/v0.5.2/marketlens-v0.5.2-source.zip), extract it and enter the directory containing `try_demo.py`:
+Download the [complete source ZIP](https://github.com/KILING-TASI/marketlens/releases/download/v0.5.3/marketlens-v0.5.3-source.zip), extract it and enter the directory containing `try_demo.py`:
 
 ```console
 python try_demo.py --no-open --out-dir reports/first-demo

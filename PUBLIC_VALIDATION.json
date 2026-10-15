@@ -1,0 +1,15 @@
+{
+  "schemaVersion": "public-validation/1",
+  "repository": "marketlens",
+  "registeredOn": "2026-10-15",
+  "hashFormat": "UTF-8 with LF newlines; BOM ignored; original response hashes remain in original receipts",
+  "coverage": "no-eligible-public-inputs",
+  "sourceAuthenticityCertified": false,
+  "evidence": [],
+  "checkFiles": [],
+  "gaps": [
+    "当前登记的示例含教学原文，不能计作真实消息准确率",
+    "需补有许可原文、更正撤回与同源转载的真实回归"
+  ],
+  "limits": "registry and selected counterexamples; no new original-document authentication or investment-effect certification"
+}
